@@ -39,9 +39,9 @@ end
 function Material:onFrameStart(scene)
 end
 
----Called before drawing an object with this material.
----@param obj Object
-function Material:onBeforeDraw(obj)
+---Called before drawing an actor with this material.
+---@param act ActorWithMaterial | NoteFieldProxy
+function Material:onBeforeDraw(act)
 end
 
 ---@param key string

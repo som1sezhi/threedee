@@ -1,0 +1,144 @@
+local class = require 'threedee.class'
+
+---A wrapped actor.
+---@class SceneActor: Actor
+---@field actor Actor
+---@field drawContext DrawContext
+local SceneActor = class('SceneActor')
+
+---@generic A : SceneActor
+---@param self A
+---@param actor Actor
+---@return A
+function SceneActor.new(self, actor)
+    return setmetatable({ actor = actor }, self)
+end
+
+function SceneActor:__index(key)
+    local val = getmetatable(self)[key]
+    if val ~= nil then return val end
+    -- act as a wrapper around the actor
+    val = self.actor[key]
+    if type(val) == 'function' then
+        -- assume this is an actor method.
+        -- the first time this method is called, we inspect the return value
+        -- and replace the method with an appropriate wrapper method for
+        -- future invocations
+        return function(...)
+            arg[1] = self.actor
+            local returns = {val(unpack(arg))}
+            if #returns == 1 and returns[1] == self.actor then
+                -- this method returns the actor itself (i.e. it can chain).
+                -- handle this by having the method return the SceneActor instead
+                self[key] = function(...)
+                    arg[1] = self.actor
+                    val(unpack(arg))
+                    return self
+                end
+                return self
+            else
+                self[key] = function(...)
+                    arg[1] = self.actor
+                    return val(unpack(arg))
+                end
+                return unpack(returns)
+            end
+        end
+    else
+        return val
+    end
+end
+
+function SceneActor:zoomxyz(scaleX, scaleY, scaleZ)
+    self.actor:zoomx(scaleX)
+    self.actor:zoomy(scaleY)
+    self.actor:zoomz(scaleZ)
+    return self
+end
+
+---Called during Scene:finalize().
+---@param scene Scene
+function SceneActor:onFinalize(scene)
+    self.drawContext = scene.drawContext
+end
+
+--------------------------------------------------------------------------------
+
+---A Sprite, Model, or Polygon associated with a material.
+---@class ActorWithMaterial: SceneActor
+---@field material Material
+local ActorWithMaterial = class('ActorWithMaterial', SceneActor)
+ActorWithMaterial.__index = SceneActor.__index -- use actor-wrapping behavior
+
+---@param actor Sprite | Model | Polygon | ActorWithMaterial
+---@param material Material
+function ActorWithMaterial:new(actor, material)
+    local o = SceneActor.new(self, actor)
+    o.material = material
+    actor:zbuffer(1)
+    actor:zwrite(1)
+    actor:ztestmode('writeonpass')
+    return o
+end
+
+function ActorWithMaterial:onFinalize(scene)
+    SceneActor.onFinalize(self, scene)
+    self.actor:SetShader(self.material.program)
+end
+
+function ActorWithMaterial:Draw()
+    if self.drawContext.isDrawingShadowMap then
+        self.actor:Draw()
+    else
+        self.material:onBeforeDraw(self)
+        self.actor:Draw()
+    end
+end
+
+--------------------------------------------------------------------------------
+
+---A notefield proxy associated with a material.
+---@class NoteFieldProxy: SceneActor
+---@field material Material
+---@field player Player
+local NoteFieldProxy = class('NoteFieldProxy', SceneActor)
+NoteFieldProxy.__index = SceneActor.__index -- use actor-wrapping behavior
+
+---Creates a new wrapped notefield proxy, and sets the proxy target to the
+---player's notefield.
+---@param actor ActorProxy | NoteFieldProxy
+---@param material Material
+---@param player Player
+function NoteFieldProxy:new(actor, material, player)
+    local o = SceneActor.new(self, actor)
+    o.material = material
+    o.player = player
+    actor:SetTarget(player:GetChild('NoteField'))
+    return o
+end
+
+function NoteFieldProxy:onFinalize(scene)
+    SceneActor.onFinalize(self, scene)
+    local shader = self.material.program
+    self.player:SetArrowShader(shader)
+	self.player:SetHoldShader(shader)
+	self.player:SetReceptorShader(shader)
+    self.player:SetArrowPathShader(shader)
+end
+
+function NoteFieldProxy:Draw()
+    if self.drawContext.isDrawingShadowMap then
+        self.actor:Draw()
+    else
+        self.material:onBeforeDraw(self)
+        self.actor:Draw()
+    end
+end
+
+--------------------------------------------------------------------------------
+
+return {
+    SceneActor = SceneActor,
+    ActorWithMaterial = ActorWithMaterial,
+    NoteFieldProxy = NoteFieldProxy
+}
