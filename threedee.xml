@@ -1,7 +1,12 @@
-<Layer Type="ActorFrame" InitCommand="hidden,1"><children>
-    <Layer Name="_td_depthMatActor" Frag="threedee/placeholder/placeholder.frag" />
-    <Layer Name="_td_normalMatActor" Frag="threedee/placeholder/placeholder.frag" />
+<Layer Type="ActorFrame" InitCommand="%xero(function(self)
+    self:hidden(1)
+    placeholder = '../plugins/threedee/placeholder.frag'
+end)"><children>
+    <Layer Name="_td_depthMatActor" Frag="@xero.placeholder" />
+    <Layer Name="_td_normalMatActor" Frag="@xero.placeholder" />
+
     <Layer Name="_td_shadowMapAft" Type="ActorFrameTexture" />
+    
     <Layer Name="_td_depthInitQuad" InitCommand="clearzbuffer,1;diffuse,1,1,1,1;xywh,xero.scx,xero.scy,xero.sw,xero.sh" Type="Quad" />
     <Layer Name="_td_clearBufferActor" InitCommand="clearzbuffer,1;clearbuffer,1" Type="Quad" />
     <Layer Name="_td_whiteSpr" File="threedee/white.png" />
