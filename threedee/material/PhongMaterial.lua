@@ -296,11 +296,11 @@ vec3 perturbNormal(vec3 N, vec3 V, vec2 texCoord) {
 }
 
 void main() {
-    vec3 diffuseCol = diffuse * color.rgb;
-    float alpha = 1.0;//color.a;
+    vec3 diffuseCol = diffuse * pow(color.rgb, vec3(2.2));
+    float alpha = color.a;
     #ifdef USE_DIFFUSE_MAP
         vec4 diffuseMapSample = texture2D(sampler0, textureCoord);
-        diffuseCol *= diffuseMapSample.rgb;
+        diffuseCol *= pow(diffuseMapSample.rgb, vec3(2.2));
         alpha *= diffuseMapSample.a;
     #endif
 
