@@ -1,6 +1,6 @@
 local Color = require 'threedee.math.Color'
 local class = require 'threedee.class'
-local Material = require 'threedee.material.Material'
+local Material = require 'threedee.materials.Material'
 
 local VERT_SHADER = [[#version 120
 attribute vec4 TextureMatrixScale;

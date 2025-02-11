@@ -13,7 +13,7 @@ local td = {
     ActorWithMaterial = sceneActors.ActorWithMaterial,
     NoteFieldProxy = sceneActors.NoteFieldProxy,
 
-    PhongMaterial = require 'threedee.material.PhongMaterial',
+    PhongMaterial = require 'threedee.materials.PhongMaterial',
 }
 
 return td

@@ -1,6 +1,6 @@
 local Vec3 = require 'threedee.math.Vec3'
-local DepthMaterial = require 'threedee.material.DepthMaterial'
-local NormalMaterial = require 'threedee.material.NormalMaterial'
+local DepthMaterial = require 'threedee.materials.DepthMaterial'
+local NormalMaterial = require 'threedee.materials.NormalMaterial'
 local PerspectiveCamera = require 'threedee.Camera'
 local ma = require 'threedee.math'
 local class = require 'threedee.class'
