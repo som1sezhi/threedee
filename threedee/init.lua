@@ -14,6 +14,9 @@ local td = {
     NoteFieldProxy = sceneActors.NoteFieldProxy,
 
     PhongMaterial = require 'threedee.materials.PhongMaterial',
+    DepthMaterial = require 'threedee.materials.DepthMaterial',
+    NormalMaterial = require 'threedee.materials.NormalMaterial',
+    UVMaterial = require 'threedee.materials.UVMaterial',
 }
 
 return td

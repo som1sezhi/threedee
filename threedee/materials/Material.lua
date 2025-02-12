@@ -48,7 +48,7 @@ end
 ---@param condition any
 function Material:_defineFlag(key, condition)
     if condition then
-        self.program:define(key, 1)
+        self.program:define(key, nil)
     else
         self.program:clearDefine(key)
     end
