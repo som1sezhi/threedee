@@ -4,7 +4,7 @@
 ---@type Actor
 _td_depthMatActor = {}
 
----@type ActorFrameTexture
+---@type ActorFrameTexture[]
 _td_shadowMapAft = {}
 
 ---@type Quad

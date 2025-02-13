@@ -4,6 +4,8 @@ return {
     varying vec4 vColor;
 #endif
 
+uniform vec3 color;
+
 #ifdef USE_DIFFUSE_MAP
     #ifdef USE_DIFFUSE_MAP_SAMPLER0
         uniform sampler2D sampler0;

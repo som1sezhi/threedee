@@ -17,5 +17,5 @@ varying vec2 vTextureCoord;
 varying vec2 vImageCoord;
 
 // like NotITG's color
-varying vec4 vColor
+varying vec4 vColor;
 ```

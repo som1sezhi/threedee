@@ -5,7 +5,10 @@ end)"><children>
     <Layer Name="_td_depthMatActor" Frag="@xero.placeholder" />
     <Layer Name="_td_normalMatActor" Frag="@xero.placeholder" />
 
-    <Layer Name="_td_shadowMapAft" Type="ActorFrameTexture" />
+    <!-- Add more actors if you want more shadow maps -->
+    <Layer Name="_td_shadowMapAft[1]" Type="ActorFrameTexture" />
+    <Layer Name="_td_shadowMapAft[2]" Type="ActorFrameTexture" />
+    <Layer Name="_td_shadowMapAft[3]" Type="ActorFrameTexture" />
     
     <Layer Name="_td_depthInitQuad" InitCommand="clearzbuffer,1;diffuse,1,1,1,1;xywh,xero.scx,xero.scy,xero.sw,xero.sh" Type="Quad" />
     <Layer Name="_td_clearBufferActor" InitCommand="clearzbuffer,1;clearbuffer,1" Type="Quad" />

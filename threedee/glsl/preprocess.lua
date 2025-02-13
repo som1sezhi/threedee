@@ -7,6 +7,7 @@
 ---@overload fun(source1: string): string
 local function preprocess(source1, source2)
     local prevIncludes = {}
+    local prevIncludedTraits = {}
     local checkPrevStageDeps = false
 
     local function getSnippet(snippetName)
@@ -23,10 +24,23 @@ local function preprocess(source1, source2)
                     ))
                 end
             end
+            local function checkTraitDep(traitName)
+                if not prevIncludedTraits[traitName] then
+                    error(string.format(
+                        '<%s> depends on an include with trait "%s" which was not included previously',
+                        snippetName, traitName
+                    ))
+                end
+            end
 
             if snippetInfo.deps then
                 for _, depName in ipairs(snippetInfo.deps) do
                     checkDep(depName)
+                end
+            end
+            if snippetInfo.traitDeps then
+                for _, traitName in ipairs(snippetInfo.traitDeps) do
+                    checkTraitDep(traitName)
                 end
             end
             if checkPrevStageDeps and snippetInfo.prevStageDeps then
@@ -36,6 +50,11 @@ local function preprocess(source1, source2)
             end
 
             prevIncludes[snippetName] = true
+            if snippetInfo.traits then
+                for _, traitName in ipairs(snippetInfo.traits) do
+                    prevIncludedTraits[traitName] = true
+                end
+            end
             return snippetInfo.snippet
         else
             error('could not resolve #include <' .. snippetName .. '>')

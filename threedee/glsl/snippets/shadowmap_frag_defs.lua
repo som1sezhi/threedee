@@ -1,11 +1,8 @@
 return {
     snippet = [[
 uniform bool doShadows;
-uniform sampler2D shadowMap;
 uniform vec2 shadowMapTextureSize;
 uniform vec2 shadowMapImageSize;
-uniform float lightNearDist;
-uniform float lightFarDist;
 
 vec2 img2texShadowMap( vec2 v ) {
     //vec2 uv = v / shadowMapTextureSize * shadowMapImageSize;
@@ -15,7 +12,7 @@ vec2 img2texShadowMap( vec2 v ) {
 
 #define OLD
 #ifdef OLD
-float calcShadow(vec4 fragLightSpacePos) {
+float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowInfo) {
     vec3 projCoord = fragLightSpacePos.xyz / fragLightSpacePos.w;
 
     if (projCoord.z < -1.0 || 1.0 < projCoord.z)
@@ -29,9 +26,9 @@ float calcShadow(vec4 fragLightSpacePos) {
     if (any(lessThan(baseUV, corner1)) || any(greaterThan(baseUV, corner2)))
         return 0.0;
 
-    float currentDepth = linearizeDepth(projCoord.z, lightNearDist, lightFarDist) / lightFarDist;
+    float currentDepth = linearizeDepth(projCoord.z, shadowInfo.nearDist, shadowInfo.farDist) / shadowInfo.farDist;
     // currentDepth -= max(0.01 * (1.0 - dot(nrm, light)), 0.002);
-    //currentDepth = invlerp(lightNearDist, lightFarDist, currentDepth);
+    //currentDepth = invlerp(shadowInfo.nearDist, shadowInfo.farDist, currentDepth);
     currentDepth -= 0.003;
 
     float shadow = 0.0;
@@ -79,9 +76,9 @@ float calcShadow(vec4 fragLightSpacePos) {
     if (any(lessThan(baseUV, corner1)) || any(greaterThan(baseUV, corner2)))
         return 0.0;
 
-    float currentDepth = linearizeDepth(projCoord.z, lightNearDist, lightFarDist) / lightFarDist;
+    float currentDepth = linearizeDepth(projCoord.z, shadowInfo.nearDist, shadowInfo.farDist) / shadowInfo.farDist;
     // currentDepth -= max(0.01 * (1.0 - dot(nrm, light)), 0.002);
-    //currentDepth = invlerp(lightNearDist, lightFarDist, currentDepth);
+    //currentDepth = invlerp(shadowInfo.nearDist, shadowInfo.farDist, currentDepth);
     currentDepth -= 0.003;
 
     #ifdef PCF_3X3
@@ -131,5 +128,5 @@ float calcShadow(vec4 fragLightSpacePos) {
 }
 #endif
 ]],
-    deps = {'packing'}
+    deps = {'packing', 'lights_frag_defs'}
 }

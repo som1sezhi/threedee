@@ -17,6 +17,10 @@ local cos = math.cos
 ---@field projMatrix Mat4
 local PerspectiveCamera = class('PerspectiveCamera')
 
+---@class(partial) PerspectiveCamera.Partial: PerspectiveCamera
+
+---@param attrs PerspectiveCamera.Partial
+---@return PerspectiveCamera
 function PerspectiveCamera:new(attrs)
     local o = {
         position = attrs.position or Vec3:new(0, 0, 0),
@@ -54,4 +58,6 @@ function PerspectiveCamera:updateProjMatrix()
     )
 end
 
-return PerspectiveCamera
+return {
+    PerspectiveCamera = PerspectiveCamera
+}

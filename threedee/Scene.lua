@@ -1,13 +1,16 @@
 local Vec3 = require 'threedee.math.Vec3'
 local DepthMaterial = require 'threedee.materials.DepthMaterial'
 local NormalMaterial = require 'threedee.materials.NormalMaterial'
-local PerspectiveCamera = require 'threedee.Camera'
+local cameras = require 'threedee.cameras'
 local ma = require 'threedee.math'
 local class = require 'threedee.class'
 
 local depthMat = DepthMaterial:new(_td_depthMatActor)
 depthMat:compile()
-aft(_td_shadowMapAft)
+
+for _, shadowMapAft in ipairs(_td_shadowMapAft) do
+    aft(shadowMapAft)
+end
 
 -- local normalMat = NormalMaterial:new(_td_normalMatActor)
 -- normalMat:compile()
@@ -15,40 +18,38 @@ aft(_td_shadowMapAft)
 ---@class DrawContext
 ---@field isDrawingShadowMap boolean
 
+---@class SceneLights
+---@field ambientLights AmbientLight[]
+---@field pointLights PointLight[]
+---@field pointLightShadows PointLightShadow[]
+
 ---@class Scene
 ---@field aframe ActorFrame
 ---@field camera PerspectiveCamera
----@field lightPos Vec3
 ---@field actors SceneActor[]
 ---@field materials Material[]
 ---@field doShadows boolean
----@field lightCamera PerspectiveCamera
----@field shadowMap RageTexture
 ---@field drawContext DrawContext
+---@field lights SceneLights
 local Scene = class('Scene')
 
 ---@param aframe ActorFrame
 ---@param camera PerspectiveCamera
 ---@return Scene
 function Scene:new(aframe, camera)
-    local pos = Vec3:new(0, -100, 600)
     local o = {
         aframe = aframe,
         camera = camera,
-
-        lightPos = pos,
 
         actors = {},
         materials = {},
 
         doShadows = false,
-        lightCamera = PerspectiveCamera:new({
-            position = pos,
-            fov = math.rad(60),
-            nearDist = 100,
-            farDist = 3100,
-        }),
-        shadowMap = _td_shadowMapAft:GetTexture(),
+        lights = {
+            ambientLights = {},
+            pointLights = {},
+            pointLightShadows = {},
+        },
 
         drawContext = {
             isDrawingShadowMap = false
@@ -60,15 +61,15 @@ function Scene:new(aframe, camera)
         o:draw()
     end)
 
-    o.lightCamera:lookAt(Vec3:new(0, 0, 0))
-
     return o
 end
 
 ---@param sceneActor SceneActor
 function Scene:add(sceneActor)
     table.insert(self.actors, sceneActor)
+    ---@diagnostic disable-next-line: undefined-field
     if sceneActor.material then
+        ---@cast sceneActor (ActorWithMaterial | NoteFieldProxy)
         local shouldAddMaterial = true
         for _, mat in ipairs(self.materials) do
             if mat == sceneActor.material then
@@ -82,7 +83,34 @@ function Scene:add(sceneActor)
     end
 end
 
+---@param light Light
+function Scene:addLight(light)
+    ---@diagnostic disable-next-line: undefined-field
+    local name = light.__name
+    if name == 'AmbientLight' then
+        table.insert(self.lights.ambientLights, light)
+    elseif name == 'PointLight' then
+        table.insert(self.lights.pointLights, light)
+    end
+end
+
 function Scene:finalize()
+    local shadowMapAftIdx = 1
+    ---@param shadow PointLightShadow
+    local function allocShadowMapAft(shadow)
+        if shadowMapAftIdx > #_td_shadowMapAft then
+            error('Not enough shadow map AFTs for the number of shadows in the scene. Please add more AFT actors to the _td_shadowMapAft table in threedee.xml.')
+        end
+        shadow.shadowMapAft = _td_shadowMapAft[shadowMapAftIdx]
+        shadowMapAftIdx = shadowMapAftIdx + 1
+    end
+    for _, light in ipairs(self.lights.pointLights) do
+        if light.castShadows then
+            table.insert(self.lights.pointLightShadows, light.shadow)
+            allocShadowMapAft(light.shadow)
+        end
+    end
+
     for _, material in ipairs(self.materials) do
         material:compile(self)
     end
@@ -121,22 +149,25 @@ end
 function Scene:draw()
     if self.doShadows then
         -- do shadowmap depth pass
-        _td_depthInitQuad:Draw()
-
         local oldCamera = self.camera
-        self.camera = self.lightCamera
-        depthMat:onFrameStart(self)
-        DISPLAY:ShaderFuck(depthMat.program)
-        self.drawContext.isDrawingShadowMap = true
 
-        self:drawActors()
+        for _, shadow in ipairs(self.lights.pointLightShadows) do
+            _td_depthInitQuad:Draw()
+            self.camera = shadow.camera
+            depthMat:onFrameStart(self)
+            DISPLAY:ShaderFuck(depthMat.program)
+            self.drawContext.isDrawingShadowMap = true
 
-        self.drawContext.isDrawingShadowMap = false
-        DISPLAY:ClearShaderFuck()
+            self:drawActors()
+
+            self.drawContext.isDrawingShadowMap = false
+            DISPLAY:ClearShaderFuck()
+
+            shadow.shadowMapAft:Draw()
+            _td_clearBufferActor:Draw()
+        end
+
         self.camera = oldCamera
-
-        _td_shadowMapAft:Draw()
-        _td_clearBufferActor:Draw()
     end
     for _, material in ipairs(self.materials) do
         material:onFrameStart(self)

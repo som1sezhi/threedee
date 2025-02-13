@@ -1,5 +1,7 @@
 local class = require "threedee.class"
 
+local sqrt = math.sqrt
+
 ---@class Vec4
 ---@field [1] number
 ---@field [2] number
@@ -97,7 +99,7 @@ end
 
 ---@return number
 function Vec4:length()
-    return math.sqrt(self:lengthSquared())
+    return sqrt(self:lengthSquared())
 end
 
 ---@return self

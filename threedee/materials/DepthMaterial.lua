@@ -15,7 +15,6 @@ end
 
 function DepthMaterial:onFrameStart(scene)
     self.program:uniform3fv('cameraPos', scene.camera.position)
-    self.program:uniform3fv('lightPos', scene.lightPos)
     self.program:uniformMatrix4fv('tdViewMatrix', scene.camera.viewMatrix)
     self.program:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
     self.program:uniform1f('nearDist', scene.camera.nearDist)
