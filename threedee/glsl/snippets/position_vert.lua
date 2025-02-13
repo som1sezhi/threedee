@@ -1,7 +1,8 @@
 return {
     snippet = [[
     vec4 worldPos = modelMatrix * gl_Vertex;
-	gl_Position = tdProjMatrix * tdViewMatrix * worldPos;
+    vec4 viewPos = tdViewMatrix * worldPos;
+	gl_Position = tdProjMatrix * viewPos;
 ]],
     deps = {'position_vert_defs'}
 }
