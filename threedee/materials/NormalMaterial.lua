@@ -18,7 +18,7 @@ end
 
 function NormalMaterial:onFrameStart(scene)
     self.program:uniform3fv('cameraPos', scene.camera.position)
-    self.program:uniformMatrix4fv('tdViewMatrix', scene.camera.viewMatrix)
+    self.program:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
     self.program:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
     if self.normalMap then
         self.program:uniformTexture('normalMap', self.normalMap)

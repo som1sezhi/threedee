@@ -59,7 +59,7 @@ function PhongMaterial:onFrameStart(scene)
 
     -- scene uniforms
     sha:uniform3fv('cameraPos', scene.camera.position)
-    sha:uniformMatrix4fv('tdViewMatrix', scene.camera.viewMatrix)
+    sha:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
     sha:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
     sha:uniform1i('doShadows', scene.doShadows and 1 or 0)
 

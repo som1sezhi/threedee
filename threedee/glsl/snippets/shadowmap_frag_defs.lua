@@ -57,7 +57,7 @@ float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowI
 float rand(vec2 co){
   return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
-float calcShadow(vec4 fragLightSpacePos) {
+float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowInfo) {
     vec3 projCoord = fragLightSpacePos.xyz / fragLightSpacePos.w;
 
     if (projCoord.z < -1.0 || 1.0 < projCoord.z)
@@ -121,7 +121,7 @@ float calcShadow(vec4 fragLightSpacePos) {
         }
     }
     shadow /= NUM_PCF_RESULTS;
-    //gl_FragColor = vec4(n, 1.0);
+    //gl_FragColor = vec4(projCoord.xy, 0.0, 1.0);
     //return;
     // shadow = texture2D(shadowMap, img2texShadowMap(projCoord.xy)).r;
     return shadow;

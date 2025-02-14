@@ -19,7 +19,6 @@ local class = require "threedee.class"
 ---@operator add(Mat4): Mat4
 ---@operator sub(Mat4): Mat4
 ---@operator mul(Mat4): Mat4
----@operator div(Mat4): Mat4
 ---@operator unm(Mat4): Mat4
 local Mat4 = class('Mat4')
 
@@ -68,6 +67,15 @@ end
 ---@return Mat4
 function Mat4:clone()
     return Mat4:new(unpack(self))
+end
+
+---@param mat Mat3
+---@return self
+function Mat4:setMat3(mat)
+    self[1], self[5], self[9] = mat[1], mat[4], mat[7]
+    self[2], self[6], self[10] = mat[2], mat[5], mat[8]
+    self[3], self[7], self[11] = mat[3], mat[6], mat[9]
+    return self
 end
 
 ---@param other Mat4
