@@ -11,7 +11,7 @@ local Mat4 = require 'threedee.math.Mat4'
 ---@field viewMatrix Mat4
 ---@field _viewMatTranslationNeedsUpdate boolean
 ---@field _viewMatRotationNeedsUpdate boolean
-local OrientedObject = class('Object3D')
+local OrientedObject = class('OrientedObject')
 
 ---@generic O: OrientedObject
 ---@param self O

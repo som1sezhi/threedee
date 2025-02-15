@@ -11,7 +11,8 @@ local SceneActor = class('SceneActor')
 ---@param actor Actor
 ---@return A
 function SceneActor.new(self, actor)
-    return setmetatable({ actor = actor }, self)
+    local o = { actor = actor }
+    return setmetatable(o, self)
 end
 
 function SceneActor:__index(key)
@@ -49,10 +50,24 @@ function SceneActor:__index(key)
     end
 end
 
+---Sets the actor's (first layer) X/Y/Z scale values all at once
+---@param scaleX number
+---@param scaleY number
+---@param scaleZ number
+---@return SceneActor
 function SceneActor:zoomxyz(scaleX, scaleY, scaleZ)
     self.actor:zoomx(scaleX)
     self.actor:zoomy(scaleY)
     self.actor:zoomz(scaleZ)
+    return self
+end
+
+---Sets the actor's X/Y/Z scale to a uniform value
+---@param scale number
+---@return SceneActor
+function SceneActor:scale(scale)
+    self.actor:zoom(scale)
+    self.actor:zoomz(scale)
     return self
 end
 
@@ -62,13 +77,17 @@ function SceneActor:onFinalize(scene)
     self.drawContext = scene.drawContext
 end
 
+function SceneActor:__tostring()
+---@diagnostic disable-next-line: undefined-field
+    return string.format('<%s "%s">', self.__name, self.actor:GetName())
+end
+
 --------------------------------------------------------------------------------
 
 ---A Sprite, Model, or Polygon associated with a material.
 ---@class ActorWithMaterial: SceneActor
 ---@field material Material
 local ActorWithMaterial = class('ActorWithMaterial', SceneActor)
-ActorWithMaterial.__index = SceneActor.__index -- use actor-wrapping behavior
 
 ---@param actor Sprite | Model | Polygon | ActorWithMaterial
 ---@param material Material
@@ -102,7 +121,6 @@ end
 ---@field material Material
 ---@field player Player
 local NoteFieldProxy = class('NoteFieldProxy', SceneActor)
-NoteFieldProxy.__index = SceneActor.__index -- use actor-wrapping behavior
 
 ---Creates a new wrapped notefield proxy, and sets the proxy target to the
 ---player's notefield.

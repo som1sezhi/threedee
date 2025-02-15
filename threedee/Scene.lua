@@ -177,7 +177,7 @@ end
 
 function Scene:drawActors()
     for _, act in ipairs(self.actors) do
-        act.actor:Draw()
+        act:Draw()
     end
 end
 
