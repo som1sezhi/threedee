@@ -6,22 +6,22 @@ local sources = require 'threedee.glsl.shaders.normalmaterial'
 ---@field normalMap? RageTexture
 local NormalMaterial = class('NormalMaterial', Material)
 
-function NormalMaterial:new(programOrActor)
-    return Material.new(self, programOrActor)
+function NormalMaterial:new(shaderOrActor)
+    return Material.new(self, shaderOrActor)
 end
 
 function NormalMaterial:compile(scene)
-    self.program:compile(sources.vert, sources.frag)
+    self.shader:compile(sources.vert, sources.frag)
     self:_defineFlag('USE_NORMAL_MAP', self.normalMap)
-    self.program:compileImmediate()
+    self.shader:compileImmediate()
 end
 
 function NormalMaterial:onFrameStart(scene)
-    self.program:uniform3fv('cameraPos', scene.camera.position)
-    self.program:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
-    self.program:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
+    self.shader:uniform3fv('cameraPos', scene.camera.position)
+    self.shader:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
+    self.shader:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
     if self.normalMap then
-        self.program:uniformTexture('normalMap', self.normalMap)
+        self.shader:uniformTexture('normalMap', self.normalMap)
     end
 end
 

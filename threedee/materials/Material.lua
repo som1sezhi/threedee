@@ -1,30 +1,30 @@
 local class = require "threedee.class"
 
 ---@class Material
----@field program RageShaderProgram
+---@field shader RageShaderProgram
 local Material = class('Material')
 
 ---@generic M : Material
 ---@param self M
----@param programOrActor RageShaderProgram | Actor
+---@param shaderOrActor RageShaderProgram | Actor
 ---@return M
-function Material.new(self, programOrActor)
+function Material.new(self, shaderOrActor)
     -- actors have a GetShader method, RageShaderPrograms don't
-    local program
-    if programOrActor.GetShader then
-        local p = programOrActor:GetShader()
-        if p == nil then
+    local shader
+    if shaderOrActor.GetShader then
+        local s = shaderOrActor:GetShader()
+        if s == nil then
             error(
-                'actor ' .. tostring(programOrActor) ..
-                ' (' .. programOrActor:GetName() ..
+                'actor ' .. tostring(shaderOrActor) ..
+                ' (' .. shaderOrActor:GetName() ..
                 ') does not have a shader program'
             )
         end
-        program = p
+        shader = s
     else
-        program = programOrActor
+        shader = shaderOrActor
     end
-    return setmetatable({ program = program }, self)
+    return setmetatable({ shader = shader }, self)
 end
 
 ---Compiles the shader, setting the #defines according to the
@@ -48,9 +48,9 @@ end
 ---@param condition any
 function Material:_defineFlag(key, condition)
     if condition then
-        self.program:define(key, nil)
+        self.shader:define(key, nil)
     else
-        self.program:clearDefine(key)
+        self.shader:clearDefine(key)
     end
 end
 

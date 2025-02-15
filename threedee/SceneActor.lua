@@ -102,7 +102,7 @@ end
 
 function ActorWithMaterial:onFinalize(scene)
     SceneActor.onFinalize(self, scene)
-    self.actor:SetShader(self.material.program)
+    self.actor:SetShader(self.material.shader)
 end
 
 function ActorWithMaterial:Draw()
@@ -137,7 +137,7 @@ end
 
 function NoteFieldProxy:onFinalize(scene)
     SceneActor.onFinalize(self, scene)
-    local shader = self.material.program
+    local shader = self.material.shader
     self.player:SetArrowShader(shader)
 	self.player:SetHoldShader(shader)
 	self.player:SetReceptorShader(shader)

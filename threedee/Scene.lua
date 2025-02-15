@@ -155,7 +155,7 @@ function Scene:draw()
             _td_depthInitQuad:Draw()
             self.camera = shadow.camera
             depthMat:onFrameStart(self)
-            DISPLAY:ShaderFuck(depthMat.program)
+            DISPLAY:ShaderFuck(depthMat.shader)
             self.drawContext.isDrawingShadowMap = true
 
             self:drawActors()

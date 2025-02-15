@@ -6,18 +6,18 @@ local sources = require 'threedee.glsl.shaders.uvmaterial'
 ---@class UVMaterial: Material
 local UVMaterial = class('NormalMaterial', Material)
 
-function UVMaterial:new(programOrActor)
-    return Material.new(self, programOrActor)
+function UVMaterial:new(shaderOrActor)
+    return Material.new(self, shaderOrActor)
 end
 
 function UVMaterial:compile(scene)
-    self.program:compile(sources.vert, sources.frag)
+    self.shader:compile(sources.vert, sources.frag)
 end
 
 function UVMaterial:onFrameStart(scene)
-    self.program:uniform3fv('cameraPos', scene.camera.position)
-    self.program:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
-    self.program:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
+    self.shader:uniform3fv('cameraPos', scene.camera.position)
+    self.shader:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
+    self.shader:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
 end
 
 return UVMaterial

@@ -13,8 +13,8 @@ local sources = require 'threedee.glsl.shaders.phongmaterial'
 ---@field useVertexColors boolean whether to use vertex colors to modulate the base color
 local PhongMaterial = class('PhongMaterial', Material)
 
-function PhongMaterial:new(programOrActor)
-    local o = Material.new(self, programOrActor)
+function PhongMaterial:new(shaderOrActor)
+    local o = Material.new(self, shaderOrActor)
     o.diffuse = Vec3:new(1, 1, 1)
     o.specular = Vec3:new(1, 1, 1)
     o.emissive = Vec3:new(0, 0, 0)
@@ -24,22 +24,22 @@ function PhongMaterial:new(programOrActor)
 end
 
 function PhongMaterial:compile(scene)
-    self.program:compile(sources.vert, sources.frag)
+    self.shader:compile(sources.vert, sources.frag)
 
-    self.program:define('USE_AMBIENT_LIGHT', #scene.lights.ambientLights > 0)
-    self.program:define('NUM_POINT_LIGHTS', tostring(#scene.lights.pointLights))
-    self.program:define('NUM_POINT_LIGHT_SHADOWS', tostring(#scene.lights.pointLightShadows))
+    self.shader:define('USE_AMBIENT_LIGHT', #scene.lights.ambientLights > 0)
+    self.shader:define('NUM_POINT_LIGHTS', tostring(#scene.lights.pointLights))
+    self.shader:define('NUM_POINT_LIGHT_SHADOWS', tostring(#scene.lights.pointLightShadows))
 
     self:_defineFlag('USE_DIFFUSE_MAP', self.diffuseMap)
     self:_defineFlag('USE_DIFFUSE_MAP_SAMPLER0', self.diffuseMap == 'sampler0')
     self:_defineFlag('USE_NORMAL_MAP', self.normalMap)
     self:_defineFlag('USE_VERTEX_COLORS', self.useVertexColors)
 
-    self.program:compileImmediate()
+    self.shader:compileImmediate()
 end
 
 function PhongMaterial:onFrameStart(scene)
-    local sha = self.program
+    local sha = self.shader
     -- material uniforms
     sha:uniform3fv('color', self.diffuse)
     if self.diffuseMap and self.diffuseMap ~= 'sampler0' then
@@ -91,10 +91,10 @@ function PhongMaterial:onFrameStart(scene)
             sha:uniform1f('pointLightShadows['..i..'].farDist', shadow.camera.farDist)
         end
         if shadowMap ~= nil then
-            self.program:uniform2f('shadowMapTextureSize',
+            self.shader:uniform2f('shadowMapTextureSize',
                 shadowMap:GetTextureWidth(), shadowMap:GetTextureHeight()
             )
-            self.program:uniform2f('shadowMapImageSize',
+            self.shader:uniform2f('shadowMapImageSize',
                 shadowMap:GetImageWidth(), shadowMap:GetImageHeight()
             )
         end
