@@ -1,10 +1,15 @@
 local class = require 'threedee.class'
 local Material = require 'threedee.materials.Material'
 local sources = require 'threedee.glsl.shaders.uvmaterial'
+local mixins  = require 'threedee.materials.mixins'
 
 ---A debug material that visualizes the UV coordinates on an object.
 ---@class UVMaterial: Material
-local UVMaterial = class('NormalMaterial', Material)
+local UVMaterial = class('UVMaterial', Material)
+
+UVMaterial.mixins = {
+    mixins.CameraMixin
+}
 
 function UVMaterial:new(shaderOrActor)
     return Material.new(self, shaderOrActor)
@@ -15,9 +20,7 @@ function UVMaterial:compile(scene)
 end
 
 function UVMaterial:onFrameStart(scene)
-    self.shader:uniform3fv('cameraPos', scene.camera.position)
-    self.shader:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
-    self.shader:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
+    Material.onFrameStart(self, scene)
 end
 
 return UVMaterial
