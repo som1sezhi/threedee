@@ -21,8 +21,8 @@ local OrientedObject = class('OrientedObject')
 function OrientedObject.new(self, position, rotation)
     local o = setmetatable({
         position = position or Vec3:new(0, 0, 0),
-        rotation = rotation or Quat:identity(),
-        viewMatrix = Mat4:identity(),
+        rotation = rotation or Quat:new(),
+        viewMatrix = Mat4:new(),
         _positionChanged = true,
         _rotationChanged = true,
     }, self)
@@ -51,8 +51,8 @@ end
 
 function OrientedObject:updateViewMatrix()
     if self._viewMatRotationNeedsUpdate then
-        local rot = Mat3:identity():setFromQuat(self.rotation)
-        self.viewMatrix:setMat3(rot)
+        local rot = Mat3:new():setFromQuat(self.rotation)
+        self.viewMatrix:setUpperMat3(rot)
         self._viewMatTranslationNeedsUpdate = true -- update translation part of matrix based on new rotation part
         self._viewMatRotationNeedsUpdate = false
     end

@@ -16,6 +16,60 @@ local class = require "threedee.class"
 local Mat3 = class('Mat3')
 
 ---Note: entries are in column-major order
+---@param a11? number
+---@param a21? number
+---@param a31? number
+---@param a12? number
+---@param a22? number
+---@param a32? number
+---@param a13? number
+---@param a23? number
+---@param a33? number
+---@return Mat3
+function Mat3:new(
+    a11, a21, a31,
+    a12, a22, a32,
+    a13, a23, a33
+)
+    local o = setmetatable({
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    }, self)
+    if a11 ~= nil then
+        return o:set(
+            a11, a21, a31,
+            a12, a22, a32,
+            a13, a23, a33
+        )
+    end
+    return o
+end
+
+---@return self
+function Mat3:identity()
+    return self:set(
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    )
+end
+
+---@return Mat3
+function Mat3:clone()
+    return Mat3:new(unpack(self))
+end
+
+---@param source Mat3
+---@return self
+function Mat3:copy(source)
+    for i = 1, 9 do
+        self[i] = source[i]
+    end
+    return self
+end
+
+---Note: entries are in column-major order
 ---@param a11 number
 ---@param a21 number
 ---@param a31 number
@@ -26,30 +80,15 @@ local Mat3 = class('Mat3')
 ---@param a23 number
 ---@param a33 number
 ---@return Mat3
-function Mat3:new(
+function Mat3:set(
     a11, a21, a31,
     a12, a22, a32,
     a13, a23, a33
 )
-    return setmetatable({
-        a11, a21, a31,
-        a12, a22, a32,
-        a13, a23, a33
-    }, self)
-end
-
----@return Mat3
-function Mat3:identity()
-    return Mat3:new(
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1
-    )
-end
-
----@return Mat3
-function Mat3:clone()
-    return Mat3:new(unpack(self))
+    self[1], self[2], self[3] = a11, a21, a31
+    self[4], self[5], self[6] = a12, a22, a32
+    self[7], self[8], self[9] = a13, a23, a33
+    return self
 end
 
 ---@param mat Mat4
@@ -78,6 +117,28 @@ function Mat3:setFromQuat(q)
     return self
 end
 
+---@param row1 Vec3
+---@param row2 Vec3
+---@param row3 Vec3
+function Mat3:setFromRows(row1, row2, row3)
+    return self:set(
+        row1[1], row2[1], row3[1],
+        row1[2], row2[2], row3[2],
+        row1[3], row2[3], row3[3]
+    )
+end
+
+---@param col1 Vec3
+---@param col2 Vec3
+---@param col3 Vec3
+function Mat3:setFromCols(col1, col2, col3)
+    return self:set(
+        col1[1], col1[2], col1[3],
+        col2[1], col2[2], col2[3],
+        col3[1], col3[2], col3[3]
+    )
+end
+
 ---@param other Mat3
 ---@return self
 function Mat3:add(other)
@@ -92,24 +153,6 @@ end
 function Mat3:sub(other)
     for i = 1, 9 do
         self[i] = self[i] - other[i]
-    end
-    return self
-end
-
----@param other Mat3
----@return self
-function Mat3:mul(other)
-    for i = 1, 9 do
-        self[i] = self[i] * other[i]
-    end
-    return self
-end
-
----@param other Mat3
----@return self
-function Mat3:div(other)
-    for i = 1, 9 do
-        self[i] = self[i] / other[i]
     end
     return self
 end
@@ -133,13 +176,26 @@ end
 
 ---@param other Mat3
 ---@return self
-function Mat3:matmul(other)
+function Mat3:mul(other)
+    return self:mulMatrices(self, other)
+end
+
+---@param other Mat3
+---@return self
+function Mat3:premul(other)
+    return self:mulMatrices(other, self)
+end
+
+---@param matrixA Mat3
+---@param matrixB Mat3
+---@return self
+function Mat3:mulMatrices(matrixA, matrixB)
     local a11, a21, a31,
         a12, a22, a32,
-        a13, a23, a33 = unpack(self)
+        a13, a23, a33 = unpack(matrixA)
     local b11, b21, b31,
         b12, b22, b32,
-        b13, b23, b33 = unpack(other)
+        b13, b23, b33 = unpack(matrixB)
     self[1] = a11*b11 + a12*b21 + a13*b31
     self[2] = a21*b11 + a22*b21 + a23*b31
     self[3] = a31*b11 + a32*b21 + a33*b31
@@ -172,7 +228,7 @@ end
 ---@param b Mat3
 ---@return Mat3
 function Mat3.__mul(a, b)
-    return a:clone():matmul(b)
+    return a:clone():mul(b)
 end
 
 ---@param a Mat3

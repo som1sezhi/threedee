@@ -4,9 +4,13 @@ local cameras = require 'threedee.cameras'
 local lights = require 'threedee.lights'
 
 local td = {
+    math = math,
     Vec3 = math.Vec3,
     Vec4 = math.Vec4,
+    Mat3 = math.Mat3,
     Mat4 = math.Mat4,
+    Quat = math.Quat,
+    Euler = math.Euler,
     color = math.color,
 
     Scene = require 'threedee.Scene',

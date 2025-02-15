@@ -23,6 +23,71 @@ local class = require "threedee.class"
 local Mat4 = class('Mat4')
 
 ---Note: entries are in column-major order
+---@param a11? number
+---@param a21? number
+---@param a31? number
+---@param a41? number
+---@param a12? number
+---@param a22? number
+---@param a32? number
+---@param a42? number
+---@param a13? number
+---@param a23? number
+---@param a33? number
+---@param a43? number
+---@param a14? number
+---@param a24? number
+---@param a34? number
+---@param a44? number
+---@return Mat4
+function Mat4:new(
+    a11, a21, a31, a41,
+    a12, a22, a32, a42,
+    a13, a23, a33, a43,
+    a14, a24, a34, a44
+)
+    local m = setmetatable({
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    }, self)
+    if a11 ~= nil then
+        return m:set(
+            a11, a21, a31, a41,
+            a12, a22, a32, a42,
+            a13, a23, a33, a43,
+            a14, a24, a34, a44
+        )
+    end
+    return m
+end
+
+---@return self
+function Mat4:identity()
+    return self:set(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    )
+end
+
+---@return Mat4
+function Mat4:clone()
+    return Mat4:new(unpack(self))
+end
+
+---@param source Mat4
+---@return self
+function Mat4:copy(source)
+    for i = 1, 9 do
+        self[i] = source[i]
+    end
+    return self
+end
+
+---Note: entries are in column-major order
 ---@param a11 number
 ---@param a21 number
 ---@param a31 number
@@ -40,42 +105,53 @@ local Mat4 = class('Mat4')
 ---@param a34 number
 ---@param a44 number
 ---@return Mat4
-function Mat4:new(
+function Mat4:set(
     a11, a21, a31, a41,
     a12, a22, a32, a42,
     a13, a23, a33, a43,
     a14, a24, a34, a44
 )
-    return setmetatable({
-        a11, a21, a31, a41,
-        a12, a22, a32, a42,
-        a13, a23, a33, a43,
-        a14, a24, a34, a44
-    }, self)
+    self[1], self[2], self[3], self[4] = a11, a21, a31, a41
+    self[5], self[6], self[7], self[8] = a12, a22, a32, a42
+    self[9], self[10], self[11], self[12] = a13, a23, a33, a43
+    self[13], self[14], self[15], self[16] = a14, a24, a34, a44
+    return self
 end
 
----@return Mat4
-function Mat4:identity()
-    return Mat4:new(
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    )
-end
-
----@return Mat4
-function Mat4:clone()
-    return Mat4:new(unpack(self))
-end
-
+---Sets the upper 3x3 submatrix
 ---@param mat Mat3
 ---@return self
-function Mat4:setMat3(mat)
+function Mat4:setUpperMat3(mat)
     self[1], self[5], self[9] = mat[1], mat[4], mat[7]
     self[2], self[6], self[10] = mat[2], mat[5], mat[8]
     self[3], self[7], self[11] = mat[3], mat[6], mat[9]
     return self
+end
+
+---@param row1 Vec4
+---@param row2 Vec4
+---@param row3 Vec4
+---@param row4 Vec4
+function Mat4:setFromRows(row1, row2, row3, row4)
+    return self:set(
+        row1[1], row2[1], row3[1], row4[1],
+        row1[2], row2[2], row3[2], row4[2],
+        row1[3], row2[3], row3[3], row4[3],
+        row1[4], row2[4], row3[4], row4[4]
+    )
+end
+
+---@param col1 Vec4
+---@param col2 Vec4
+---@param col3 Vec4
+---@param col4 Vec4
+function Mat4:setFromCols(col1, col2, col3, col4)
+    return self:set(
+        col1[1], col1[2], col1[3], col1[4],
+        col2[1], col2[2], col2[3], col2[4],
+        col3[1], col3[2], col3[3], col3[4],
+        col4[1], col4[2], col4[3], col4[4]
+    )
 end
 
 ---@param other Mat4
@@ -92,24 +168,6 @@ end
 function Mat4:sub(other)
     for i = 1, 16 do
         self[i] = self[i] - other[i]
-    end
-    return self
-end
-
----@param other Mat4
----@return self
-function Mat4:mul(other)
-    for i = 1, 16 do
-        self[i] = self[i] * other[i]
-    end
-    return self
-end
-
----@param other Mat4
----@return self
-function Mat4:div(other)
-    for i = 1, 16 do
-        self[i] = self[i] / other[i]
     end
     return self
 end
@@ -133,15 +191,28 @@ end
 
 ---@param other Mat4
 ---@return self
-function Mat4:matmul(other)
+function Mat4:mul(other)
+    return self:mulMatrices(self, other)
+end
+
+---@param other Mat4
+---@return self
+function Mat4:premul(other)
+    return self:mulMatrices(other, self)
+end
+
+---@param matrixA Mat4
+---@param matrixB Mat4
+---@return self
+function Mat4:mulMatrices(matrixA, matrixB)
     local a11, a21, a31, a41,
         a12, a22, a32, a42,
         a13, a23, a33, a43,
-        a14, a24, a34, a44 = unpack(self)
+        a14, a24, a34, a44 = unpack(matrixA)
     local b11, b21, b31, b41,
         b12, b22, b32, b42,
         b13, b23, b33, b43,
-        b14, b24, b34, b44 = unpack(other)
+        b14, b24, b34, b44 = unpack(matrixB)
     self[1] = a11*b11 + a12*b21 + a13*b31 + a14*b41
     self[2] = a21*b11 + a22*b21 + a23*b31 + a24*b41
     self[3] = a31*b11 + a32*b21 + a33*b31 + a34*b41
@@ -182,7 +253,7 @@ end
 ---@param b Mat4
 ---@return Mat4
 function Mat4.__mul(a, b)
-    return a:clone():matmul(b)
+    return a:clone():mul(b)
 end
 
 ---@param a Mat4

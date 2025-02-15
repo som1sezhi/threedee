@@ -14,18 +14,51 @@ local sqrt = math.sqrt
 ---@operator unm(Vec4): Vec4
 local Vec4 = class('Vec4')
 
----@param x number
----@param y number
----@param z number
----@param w number
+---@param x? number
+---@param y? number
+---@param z? number
+---@param w? number
 ---@return Vec4
 function Vec4:new(x, y, z, w)
-    return setmetatable({x, y, z, w}, self)
+    return setmetatable({x or 0, y or 0, z or 0, w or 0}, self)
 end
 
 ---@return Vec4
 function Vec4:clone()
     return Vec4:new(self[1], self[2], self[3], self[4])
+end
+
+---@param source Vec4
+---@return self
+function Vec4:copy(source)
+    self[1], self[2], self[3], self[4] = source[1], source[2], source[3], source[4]
+    return self
+end
+
+---@param x number
+---@param y number
+---@param z number
+---@param w number
+---@return self
+function Vec4:set(x, y, z, w)
+    self[1], self[2], self[3], self[4] = x, y, z, w
+    return self
+end
+
+---@param m Mat4
+---@param i 1|2|3|4
+---@return self
+function Vec4:setFromMatRow(m, i)
+    self[1], self[2], self[3], self[4] = m[i], m[4+i], m[8+i], m[12+i]
+    return self
+end
+
+---@param m Mat4
+---@param i 1|2|3|4
+---@return self
+function Vec4:setFromMatCol(m, i)
+    self[1], self[2], self[3], self[4] = m[i*4-3], m[i*4-2], m[i*4-1], m[i*4]
+    return self
 end
 
 ---@param other Vec4

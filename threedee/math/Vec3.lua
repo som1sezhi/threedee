@@ -13,17 +13,49 @@ local sqrt = math.sqrt
 ---@operator unm(Vec3): Vec3
 local Vec3 = class('Vec3')
 
----@param x number
----@param y number
----@param z number
+---@param x? number
+---@param y? number
+---@param z? number
 ---@return Vec3
 function Vec3:new(x, y, z)
-    return setmetatable({x, y, z}, self)
+    return setmetatable({x or 0, y or 0, z or 0}, self)
 end
 
 ---@return Vec3
 function Vec3:clone()
     return Vec3:new(self[1], self[2], self[3])
+end
+
+---@param source Vec3
+---@return self
+function Vec3:copy(source)
+    self[1], self[2], self[3] = source[1], source[2], source[3]
+    return self
+end
+
+---@param x number
+---@param y number
+---@param z number
+---@return self
+function Vec3:set(x, y, z)
+    self[1], self[2], self[3] = x, y, z
+    return self
+end
+
+---@param m Mat3
+---@param i 1|2|3
+---@return self
+function Vec3:setFromMatRow(m, i)
+    self[1], self[2], self[3] = m[i], m[3+i], m[6+i]
+    return self
+end
+
+---@param m Mat3
+---@param i 1|2|3
+---@return self
+function Vec3:setFromMatCol(m, i)
+    self[1], self[2], self[3] = m[i*3-2], m[i*3-1], m[i*3]
+    return self
 end
 
 ---@param other Vec3
