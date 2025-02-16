@@ -8,6 +8,7 @@ local sqrt = math.sqrt
 local abs = math.abs
 local acos = math.acos
 local WORLD_UP = Vec3:new(0, -1, 0)
+local matrix = Mat3:new()
 
 ---@class Quat
 ---@field [1] number
@@ -116,7 +117,7 @@ end
 ---Sets quaternion from a rotation matrix
 ---@param rot Mat3 rotation matrix
 ---@return self
-function Quat:setFromMatrix(rot)
+function Quat:setFromMat3(rot)
     -- http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
     local m00, m10, m20,
         m01, m11, m21,
@@ -204,15 +205,15 @@ function Quat:lookRotation(forwards, up)
     up = up or WORLD_UP
 
     local zaxis = (-forwards):normalize()
-    local xaxis = zaxis:cross(up):normalize()
-    local yaxis = zaxis:cross(xaxis)
+    local xaxis = zaxis:clone():cross(up):normalize()
+    local yaxis = zaxis:clone():cross(xaxis)
 
-    local rot = Mat3:new(
+    matrix:set(
         xaxis[1], yaxis[1], zaxis[1],
         xaxis[2], yaxis[2], zaxis[2],
         xaxis[3], yaxis[3], zaxis[3]
     )
-    self:setFromMatrix(rot)
+    self:setFromMat3(matrix)
     return self
 end
 

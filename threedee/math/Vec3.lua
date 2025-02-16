@@ -137,9 +137,9 @@ function Vec3:dot(other)
 end
 
 ---@param other Vec3
----@return Vec3
+---@return self
 function Vec3:cross(other)
-    return Vec3:new(
+    return self:set(
         self[2] * other[3] - self[3] * other[2],
         self[3] * other[1] - self[1] * other[3],
         self[1] * other[2] - self[2] * other[1]

@@ -23,8 +23,8 @@ function OrientedObject.new(self, position, rotation)
         position = position or Vec3:new(0, 0, 0),
         rotation = rotation or Quat:new(),
         viewMatrix = Mat4:new(),
-        _positionChanged = true,
-        _rotationChanged = true,
+        _viewMatTranslationNeedsUpdate = true,
+        _viewMatRotationNeedsUpdate = true,
     }, self)
     o:updateViewMatrix()
     return o

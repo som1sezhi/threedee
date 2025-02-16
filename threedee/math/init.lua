@@ -33,11 +33,11 @@ function m.lookAt(eye, at, up)
     -- since up is -Y in NotITG's coord space, our up vector will behave more
     -- like a down vector in the cross product's right-handed coord space.
     -- (+Z) x (-Y) = (backwards) x (down) = (right) = (+X) as wanted
-    local xaxis = zaxis:cross(up):normalize()
+    local xaxis = zaxis:clone():cross(up):normalize()
     -- our desired +Y vector points down in NotITG space, but will behave more
     -- like an up vector in the cross product's right-handed coord space.
     -- (+Z) x (+X) = (backwards) x (right) = (up) = (+Y) as wanted
-    local yaxis = zaxis:cross(xaxis)
+    local yaxis = zaxis:clone():cross(xaxis)
 
     return Mat4:new(
         xaxis[1], yaxis[1], zaxis[1], 0,
