@@ -4,18 +4,10 @@ local Material = require 'threedee.materials.Material'
 local sources = require 'threedee.glsl.shaders.phongmaterial'
 local mixins = require 'threedee.materials.mixins'
 
----@class PhongMaterial: Material
----@field color Vec3 diffuse color
----@field colorMap? RageTexture|'sampler0'
+---@class PhongMaterial: Material, WithColor, WithAlpha, WithNormalMap
 ---@field specular Vec3 specular color
 ---@field emissive Vec3 emissive/ambient color
 ---@field shininess number sharpness of highlight
----@field normalMap? RageTexture
----@field useVertexColors boolean whether to use vertex colors to modulate the base color
----@field transparent boolean
----@field opacity number
----@field alphaTest number
----@field alphaHash boolean
 local PhongMaterial = class('PhongMaterial', Material)
 
 PhongMaterial.mixins = {
@@ -26,24 +18,15 @@ PhongMaterial.mixins = {
     mixins.AlphaMixin,
 }
 
+PhongMaterial.vertSource = sources.vert
+PhongMaterial.fragSource = sources.frag
+
 function PhongMaterial:new(shaderOrActor)
     local o = Material.new(self, shaderOrActor)
-    o.color = Vec3:new(1, 1, 1)
     o.specular = Vec3:new(1, 1, 1)
     o.emissive = Vec3:new(0, 0, 0)
     o.shininess = 30
-    o.useVertexColors = false
-    o.transparent = false
-    o.opacity = 1
-    o.alphaTest = 0.001
-    o.alphaHash = false
     return o
-end
-
-function PhongMaterial:compile(scene)
-    self.shader:compile(sources.vert, sources.frag)
-    Material.compile(self, scene)
-    self.shader:compileImmediate()
 end
 
 function PhongMaterial:onFrameStart(scene)

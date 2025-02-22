@@ -2,10 +2,14 @@ local class = require "threedee.class"
 
 ---@class Material
 ---@field shader RageShaderProgram
+---@field vertSource string
+---@field fragSource string
 ---@field mixins MaterialMixin[]
 local Material = class('Material')
 
 Material.mixins = {}
+Material.vertSource = ''
+Material.fragSource = ''
 
 ---@generic M : Material
 ---@param self M
@@ -27,7 +31,13 @@ function Material.new(self, shaderOrActor)
     else
         shader = shaderOrActor
     end
-    return setmetatable({ shader = shader }, self)
+    local o = setmetatable({ shader = shader }, self)
+    for _, mixin in ipairs(o.mixins) do
+        if mixin.init then
+            mixin.init(o)
+        end
+    end
+    return o
 end
 
 ---Compiles the shader, setting the #defines according to the
@@ -35,9 +45,17 @@ end
 ---Does not set any uniforms yet.
 ---@param scene Scene
 function Material:compile(scene)
+    self.shader:compile(self.vertSource, self.fragSource)
+    self:setDefines(scene)
+    self.shader:compileImmediate()
+end
+
+---Sets the #defines according to the material and scene properties.
+---@param scene Scene
+function Material:setDefines(scene)
     for _, mixin in ipairs(self.mixins) do
-        if mixin.compile then
-            mixin.compile(self, scene)
+        if mixin.setDefines then
+            mixin.setDefines(self, scene)
         end
     end
 end

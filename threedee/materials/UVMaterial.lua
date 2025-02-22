@@ -11,16 +11,7 @@ UVMaterial.mixins = {
     mixins.CameraMixin
 }
 
-function UVMaterial:new(shaderOrActor)
-    return Material.new(self, shaderOrActor)
-end
-
-function UVMaterial:compile(scene)
-    self.shader:compile(sources.vert, sources.frag)
-end
-
-function UVMaterial:onFrameStart(scene)
-    Material.onFrameStart(self, scene)
-end
+UVMaterial.vertSource = sources.vert
+UVMaterial.fragSource = sources.frag
 
 return UVMaterial
