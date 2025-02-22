@@ -20,6 +20,24 @@ local mixins = {
         end
     },
 
+    ---Handles transparency/opacity, alpha testing, and alpha hashing.
+    ---
+    ---Required fields: `transparent: boolean`, `opacity: number`, `alphaTest: number`, `alphaHash: boolean`
+    ---
+    ---Associated snippets: `<alpha_*>`, `<alphadiscard_*>`
+    AlphaMixin = {
+        compile = function(self)
+            self:_defineFlag('TRANSPARENT', self.transparent)
+            self:_defineFlag('USE_ALPHA_HASH', self.alphaHash)
+        end,
+
+        onFrameStart = function(self)
+            local sha = self.shader
+            sha:uniform1f('opacity', self.opacity)
+            sha:uniform1f('alphaTest', self.alphaTest)
+        end
+    },
+
     ---Handles base color, color maps, and vertex colors.
     ---
     ---Required fields: `color: Vec3`, `colorMap?: RageTexture|'sampler0'`, `useVertexColors: boolean`

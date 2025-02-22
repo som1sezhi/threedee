@@ -12,6 +12,10 @@ local mixins = require 'threedee.materials.mixins'
 ---@field shininess number sharpness of highlight
 ---@field normalMap? RageTexture
 ---@field useVertexColors boolean whether to use vertex colors to modulate the base color
+---@field transparent boolean
+---@field opacity number
+---@field alphaTest number
+---@field alphaHash boolean
 local PhongMaterial = class('PhongMaterial', Material)
 
 PhongMaterial.mixins = {
@@ -19,6 +23,7 @@ PhongMaterial.mixins = {
     mixins.ColorMixin,
     mixins.LightsMixin,
     mixins.NormalMapMixin,
+    mixins.AlphaMixin,
 }
 
 function PhongMaterial:new(shaderOrActor)
@@ -28,6 +33,10 @@ function PhongMaterial:new(shaderOrActor)
     o.emissive = Vec3:new(0, 0, 0)
     o.shininess = 30
     o.useVertexColors = false
+    o.transparent = false
+    o.opacity = 1
+    o.alphaTest = 0.001
+    o.alphaHash = false
     return o
 end
 

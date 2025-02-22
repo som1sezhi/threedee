@@ -1,10 +1,9 @@
 return {
     snippet = [[
     vec3 fragBaseColor = color;
-    float alpha = 1.0;
     #ifdef USE_VERTEX_COLORS
         fragBaseColor *= srgb2Linear(vColor.rgb);
-        alpha = vColor.a; // same as multiplying by 1
+        alpha *= vColor.a;
     #endif
     #ifdef USE_COLOR_MAP
         vec4 colorMapSample = texture2D(colorMap, vTextureCoord);
@@ -12,5 +11,5 @@ return {
         alpha *= colorMapSample.a;
     #endif
 ]],
-    deps = {'color_frag_defs', 'colorspaces', 'texcoord_frag_defs'}
+    deps = {'color_frag_defs', 'colorspaces', 'texcoord_frag_defs', 'alpha_frag'}
 }

@@ -6,6 +6,7 @@ local ma = require 'threedee.math'
 local class = require 'threedee.class'
 
 local depthMat = DepthMaterial:new(_td_depthMatActor)
+depthMat.alphaTest = 1
 depthMat:compile()
 
 for _, shadowMapAft in ipairs(_td_shadowMapAft) do

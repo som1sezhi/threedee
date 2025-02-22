@@ -30,13 +30,18 @@ local frag = [[#version 120
 #define USE_VERTEX_COLORS
 #include <utils>
 #include <packing>
+#include <position_frag_defs>
 #include <texcoord_frag_defs>
 #include <alphamap_frag_defs>
+#include <alpha_frag_defs>
+#include <alphadiscard_frag_defs>
 varying float depth;
 
 void main() {
+    #include <alpha_frag>
     #include <alphamap_frag>
-    gl_FragColor = vec4(packDepthToRGB(depth), step(0.5, alpha));
+    #include <alphadiscard_frag>
+    gl_FragColor = vec4(packDepthToRGB(depth), alpha);
 }
 ]]
 

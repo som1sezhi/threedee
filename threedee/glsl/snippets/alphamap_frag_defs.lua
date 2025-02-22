@@ -4,6 +4,9 @@ return {
     varying vec4 vColor;
 #endif
 
+#ifdef TRANSPARENT
+    uniform float opacity;
+#endif
 uniform bool useAlphaMap;
 uniform bool useSampler0AlphaMap;
 uniform bool useAlphaVertexColors;

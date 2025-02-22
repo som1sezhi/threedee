@@ -1,9 +1,8 @@
 return {
     snippet = [[
-    float alpha = 1.0;
     #ifdef USE_VERTEX_COLORS
         if (useAlphaVertexColors)
-            alpha = vColor.a;
+            alpha *= vColor.a;
     #endif
     if (useAlphaMap) {
         if (useSampler0AlphaMap)
@@ -12,5 +11,5 @@ return {
             alpha *= texture2D(alphaMap, vTextureCoord).a;
     }
 ]],
-    deps = {'alphamap_frag_defs', 'texcoord_frag_defs'}
+    deps = {'alphamap_frag_defs', 'texcoord_frag_defs', 'alpha_frag'}
 }

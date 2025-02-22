@@ -24,7 +24,10 @@ local frag = [[#version 120
 #include <utils>
 #include <packing>
 #include <colorspaces>
+#include <position_frag_defs>
 #include <color_frag_defs>
+#include <alpha_frag_defs>
+#include <alphadiscard_frag_defs>
 #include <normal_frag_defs>
 #include <posvaryings_frag_defs>
 #include <texcoord_frag_defs>
@@ -35,8 +38,10 @@ local frag = [[#version 120
 uniform vec3 emissive;
 
 void main() {
+    #include <alpha_frag>
     #include <color_frag>
     #include <normal_frag>
+    #include <alphadiscard_frag>
     #include <phong_frag>
     #include <lights_frag>
 

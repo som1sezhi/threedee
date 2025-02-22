@@ -1,5 +1,7 @@
 local class = require 'threedee.class'
-local AlphaMapMixin = (require 'threedee.materials.mixins').AlphaMapMixin
+local mixins = require 'threedee.materials.mixins'
+local AlphaMapMixin = mixins.AlphaMapMixin
+local AlphaMixin = mixins.AlphaMixin
 
 ---A wrapped actor.
 ---@class SceneActor: Actor
@@ -113,8 +115,11 @@ function ActorWithMaterial:Draw()
         depthMat.alphaMap = self.material.colorMap
         ---@diagnostic disable-next-line: undefined-field
         depthMat.useVertexColors = self.material.useVertexColors and true or false
+        ---@diagnostic disable-next-line: undefined-field
+        depthMat.opacity = self.material.opacity
         -- update uniforms related to alpha for depth material
         AlphaMapMixin.onFrameStart(depthMat, self.scene)
+        AlphaMixin.onFrameStart(depthMat, self.scene)
         self.actor:Draw()
     else
         self.material:onBeforeDraw(self)
@@ -159,8 +164,11 @@ function NoteFieldProxy:Draw()
         depthMat.alphaMap = self.material.colorMap
         ---@diagnostic disable-next-line: undefined-field
         depthMat.useVertexColors = self.material.useVertexColors and true or false
+        ---@diagnostic disable-next-line: undefined-field
+        depthMat.opacity = self.material.opacity
         -- update uniforms related to alpha for depth material
         AlphaMapMixin.onFrameStart(depthMat, self.scene)
+        AlphaMixin.onFrameStart(depthMat, self.scene)
         self.actor:Draw()
     else
         DISPLAY:ShaderFuck(self.material.shader)
