@@ -6,12 +6,12 @@ return {
 
 uniform vec3 color;
 
-#ifdef USE_DIFFUSE_MAP
-    #ifdef USE_DIFFUSE_MAP_SAMPLER0
+#ifdef USE_COLOR_MAP
+    #ifdef USE_COLOR_MAP_SAMPLER0
         uniform sampler2D sampler0;
-        #define diffuseMap sampler0
+        #define colorMap sampler0
     #else
-        uniform sampler2D diffuseMap;
+        uniform sampler2D colorMap;
     #endif
 #endif
 ]],

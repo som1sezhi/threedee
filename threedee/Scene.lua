@@ -15,9 +15,6 @@ end
 -- local normalMat = NormalMaterial:new(_td_normalMatActor)
 -- normalMat:compile()
 
----@class DrawContext
----@field isDrawingShadowMap boolean
-
 ---@class SceneLights
 ---@field ambientLights AmbientLight[]
 ---@field pointLights PointLight[]
@@ -29,8 +26,9 @@ end
 ---@field actors SceneActor[]
 ---@field materials Material[]
 ---@field doShadows boolean
----@field drawContext DrawContext
 ---@field lights SceneLights
+---@field _isDrawingShadowMap boolean
+---@field _overrideMaterial? Material
 local Scene = class('Scene')
 
 ---@param aframe ActorFrame
@@ -156,11 +154,13 @@ function Scene:draw()
             self.camera = shadow.camera
             depthMat:onFrameStart(self)
             DISPLAY:ShaderFuck(depthMat.shader)
-            self.drawContext.isDrawingShadowMap = true
+            self._isDrawingShadowMap = true
+            self._overrideMaterial = depthMat
 
             self:drawActors()
 
-            self.drawContext.isDrawingShadowMap = false
+            self._isDrawingShadowMap = false
+            self._overrideMaterial = nil
             DISPLAY:ClearShaderFuck()
 
             shadow.shadowMapAft:Draw()

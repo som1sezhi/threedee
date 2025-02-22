@@ -1,9 +1,10 @@
 local class = require 'threedee.class'
+local AlphaMapMixin = (require 'threedee.materials.mixins').AlphaMapMixin
 
 ---A wrapped actor.
 ---@class SceneActor: Actor
 ---@field actor Actor
----@field drawContext DrawContext
+---@field scene Scene
 local SceneActor = class('SceneActor')
 
 ---@generic A : SceneActor
@@ -74,7 +75,7 @@ end
 ---Called during Scene:finalize().
 ---@param scene Scene
 function SceneActor:onFinalize(scene)
-    self.drawContext = scene.drawContext
+    self.scene = scene
 end
 
 function SceneActor:__tostring()
@@ -106,7 +107,14 @@ function ActorWithMaterial:onFinalize(scene)
 end
 
 function ActorWithMaterial:Draw()
-    if self.drawContext.isDrawingShadowMap then
+    if self.scene._isDrawingShadowMap then
+        local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
+        ---@diagnostic disable-next-line: undefined-field
+        depthMat.alphaMap = self.material.colorMap
+        ---@diagnostic disable-next-line: undefined-field
+        depthMat.useVertexColors = self.material.useVertexColors and true or false
+        -- update uniforms related to alpha for depth material
+        AlphaMapMixin.onFrameStart(depthMat, self.scene)
         self.actor:Draw()
     else
         self.material:onBeforeDraw(self)
@@ -145,11 +153,20 @@ function NoteFieldProxy:onFinalize(scene)
 end
 
 function NoteFieldProxy:Draw()
-    if self.drawContext.isDrawingShadowMap then
+    if self.scene._isDrawingShadowMap then
+        local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
+        ---@diagnostic disable-next-line: undefined-field
+        depthMat.alphaMap = self.material.colorMap
+        ---@diagnostic disable-next-line: undefined-field
+        depthMat.useVertexColors = self.material.useVertexColors and true or false
+        -- update uniforms related to alpha for depth material
+        AlphaMapMixin.onFrameStart(depthMat, self.scene)
         self.actor:Draw()
     else
+        DISPLAY:ShaderFuck(self.material.shader)
         self.material:onBeforeDraw(self)
         self.actor:Draw()
+        DISPLAY:ClearShaderFuck()
     end
 end
 

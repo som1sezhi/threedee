@@ -4,14 +4,19 @@ local sources = require 'threedee.glsl.shaders.depthmaterial'
 local mixins  = require 'threedee.materials.mixins'
 
 ---@class DepthMaterial: Material
+---@field alphaMap? RageTexture|'sampler0'
+---@field useVertexColors boolean
 local DepthMaterial = class('DepthMaterial', Material)
 
 DepthMaterial.mixins = {
-    mixins.CameraMixin
+    mixins.CameraMixin,
+    mixins.AlphaMapMixin
 }
 
 function DepthMaterial:new(shaderOrActor)
-    return Material.new(self, shaderOrActor)
+    local o = Material.new(self, shaderOrActor)
+    o.useVertexColors = false
+    return o
 end
 
 function DepthMaterial:compile(scene)

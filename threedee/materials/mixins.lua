@@ -27,8 +27,8 @@ local mixins = {
     ---Associated snippets: `<color_*>`
     ColorMixin = {
         compile = function(self)
-            self:_defineFlag('USE_DIFFUSE_MAP', self.colorMap)
-            self:_defineFlag('USE_DIFFUSE_MAP_SAMPLER0', self.colorMap == 'sampler0')
+            self:_defineFlag('USE_COLOR_MAP', self.colorMap)
+            self:_defineFlag('USE_COLOR_MAP_SAMPLER0', self.colorMap == 'sampler0')
             self:_defineFlag('USE_VERTEX_COLORS', self.useVertexColors)
         end,
 
@@ -36,8 +36,31 @@ local mixins = {
             local sha = self.shader
             sha:uniform3fv('color', self.color)
             if self.colorMap and self.colorMap ~= 'sampler0' then
-                local map = self.colorMap --[[@as RageTexture]]
-                sha:uniformTexture('diffuseMap', map)
+                sha:uniformTexture('colorMap', self.colorMap --[[@as RageTexture]])
+            end
+        end
+    },
+
+    ---Handles alpha maps. This is for materials that do not have color maps otherwise.
+    ---USE_VERTEX_COLORS should be defined at the top of shaders that support this mixin.
+    ---
+    ---Required fields: `alphaMap?: RageTexture|'sampler0'`, `useVertexColors: boolean`
+    ---
+    ---Associated snippets: `<alphamap_*>`
+    AlphaMapMixin = {
+        -- we use uniforms instead of define flags to switch between the different behaviors,
+        -- since for the purposes of shadowmaps, i'd like to be able to change properties
+        -- on the depth material without switching shader programs
+
+        onFrameStart = function(self)
+            local sha = self.shader
+            sha:uniform1i('useAlphaMap', self.alphaMap and 1 or 0)
+            sha:uniform1i('useAlphaVertexColors', self.useVertexColors and 1 or 0)
+            if self.alphaMap then
+                sha:uniform1i('useSampler0AlphaMap', self.alphaMap == 'sampler0' and 1 or 0)
+                if self.alphaMap ~= 'sampler0' then
+                    sha:uniformTexture('alphaMap', self.alphaMap --[[@as RageTexture]])
+                end
             end
         end
     },
