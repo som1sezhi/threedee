@@ -2,7 +2,9 @@ local DepthMaterial = require 'threedee.materials.DepthMaterial'
 local actors = require 'threedee._actors'
 local class = require 'threedee.class'
 
-local depthMat = DepthMaterial:new(actors.depthMatActor)
+local depthMat = DepthMaterial:new({
+    shader = actors.depthMatActor:GetShader() --[[@as RageShaderProgram]]
+})
 depthMat.alphaTest = 0.5
 ---@diagnostic disable-next-line: missing-parameter
 depthMat:compile()

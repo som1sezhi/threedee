@@ -6,6 +6,8 @@ local mixins  = require 'threedee.materials.mixins'
 ---@class NormalMaterial: Material, WithNormalMap, WithAlphaMap, WithAlpha
 local NormalMaterial = class('NormalMaterial', Material)
 
+---@class (partial) NormalMaterial.P: NormalMaterial
+
 NormalMaterial.mixins = {
     mixins.CameraMixin,
     mixins.NormalMapMixin,
@@ -15,5 +17,8 @@ NormalMaterial.mixins = {
 
 NormalMaterial.vertSource = sources.vert
 NormalMaterial.fragSource = sources.frag
+
+---@type fun(self: NormalMaterial, initProps?: NormalMaterial.P): NormalMaterial
+NormalMaterial.new = Material.new
 
 return NormalMaterial

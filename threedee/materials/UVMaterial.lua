@@ -7,11 +7,16 @@ local mixins  = require 'threedee.materials.mixins'
 ---@class UVMaterial: Material
 local UVMaterial = class('UVMaterial', Material)
 
+---@class (partial) UVMaterial.P: UVMaterial
+
 UVMaterial.mixins = {
     mixins.CameraMixin
 }
 
 UVMaterial.vertSource = sources.vert
 UVMaterial.fragSource = sources.frag
+
+---@type fun(self: UVMaterial, initProps?: UVMaterial.P): UVMaterial
+UVMaterial.new = Material.new
 
 return UVMaterial

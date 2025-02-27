@@ -6,6 +6,8 @@ local mixins  = require 'threedee.materials.mixins'
 ---@class DepthMaterial: Material, WithAlphaMap, WithAlpha
 local DepthMaterial = class('DepthMaterial', Material)
 
+---@class (partial) DepthMaterial.P: DepthMaterial
+
 DepthMaterial.mixins = {
     mixins.CameraMixin,
     mixins.AlphaMapMixin,
@@ -14,6 +16,9 @@ DepthMaterial.mixins = {
 
 DepthMaterial.vertSource = sources.vert
 DepthMaterial.fragSource = sources.frag
+
+---@type fun(self: DepthMaterial, initProps?: DepthMaterial.P): DepthMaterial
+DepthMaterial.new = Material.new
 
 function DepthMaterial:onFrameStart(scene)
     Material.onFrameStart(self, scene)

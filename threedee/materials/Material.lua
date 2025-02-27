@@ -3,25 +3,28 @@ local actors = require 'threedee._actors'
 
 ---@class Material
 ---@field shader RageShaderProgram
----@field vertSource string
----@field fragSource string
+---@field vertSource? string
+---@field fragSource? string
 ---@field mixins MaterialMixin[]
 local Material = class('Material')
 
 Material.mixins = {}
-Material.vertSource = ''
-Material.fragSource = ''
 
 ---@generic M : Material
 ---@param self M
+---@param initProps M?
 ---@return M
-function Material.new(self)
-    -- actors have a GetShader method, RageShaderPrograms don't
-    local shader = actors.getMaterialActor():GetShader()
-    if shader == nil then
-        error('a material actor does not have a shader attached')
+function Material.new(self, initProps)
+    initProps = initProps or {}
+    if initProps.shader == nil then
+        local sh = actors.getMaterialActor():GetShader()
+        if sh == nil then
+            error('a material actor does not have a shader attached')
+        end
+        ---@diagnostic disable-next-line: inject-field
+        initProps.shader = sh
     end
-    local o = setmetatable({ shader = shader }, self)
+    local o = setmetatable(initProps, self)
     for _, mixin in ipairs(o.mixins) do
         if mixin.init then
             mixin.init(o)
@@ -35,7 +38,9 @@ end
 ---Does not set any uniforms yet.
 ---@param scene Scene
 function Material:compile(scene)
-    self.shader:compile(self.vertSource, self.fragSource)
+    if self.vertSource and self.fragSource then
+        self.shader:compile(self.vertSource, self.fragSource)
+    end
     self:setDefines(scene)
     self.shader:compileImmediate()
 end

@@ -39,10 +39,10 @@ mixins.CameraMixin = {
 mixins.AlphaMixin = {
     init = function(self)
         ---@cast self WithAlpha
-        self.transparent = false
-        self.opacity = 1
-        self.alphaTest = 0.001
-        self.alphaHash = false
+        self.transparent = self.transparent or false
+        self.opacity = self.opacity or 1
+        self.alphaTest = self.alphaTest or 0.001
+        self.alphaHash = self.alphaHash or false
     end,
 
     setDefines = function(self)
@@ -74,8 +74,8 @@ mixins.AlphaMixin = {
 mixins.ColorMixin = {
     init = function(self)
         ---@cast self WithColor
-        self.color = Vec3:new(1, 1, 1)
-        self.useVertexColors = false
+        self.color = self.color or Vec3:new(1, 1, 1)
+        self.useVertexColors = self.useVertexColors or false
     end,
 
     setDefines = function(self)
@@ -110,7 +110,7 @@ mixins.ColorMixin = {
 mixins.AlphaMapMixin = {
     init = function(self)
         ---@cast self WithAlphaMap
-        self.useVertexColors = false
+        self.useVertexColors = self.useVertexColors or false
     end,
 
     -- we use uniforms instead of define flags to switch between the different behaviors,

@@ -10,6 +10,8 @@ local mixins = require 'threedee.materials.mixins'
 ---@field shininess number sharpness of highlight
 local PhongMaterial = class('PhongMaterial', Material)
 
+---@class (partial) PhongMaterial.P: PhongMaterial
+
 PhongMaterial.mixins = {
     mixins.CameraMixin,
     mixins.ColorMixin,
@@ -21,8 +23,10 @@ PhongMaterial.mixins = {
 PhongMaterial.vertSource = sources.vert
 PhongMaterial.fragSource = sources.frag
 
-function PhongMaterial:new()
-    local o = Material.new(self)
+---@param initProps? PhongMaterial.P
+---@return PhongMaterial
+function PhongMaterial:new(initProps)
+    local o = Material.new(self, initProps)
     o.specular = Vec3:new(1, 1, 1)
     o.emissive = Vec3:new(0, 0, 0)
     o.shininess = 30
