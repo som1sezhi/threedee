@@ -1,21 +1,15 @@
-local Vec3 = require 'threedee.math.Vec3'
 local DepthMaterial = require 'threedee.materials.DepthMaterial'
-local NormalMaterial = require 'threedee.materials.NormalMaterial'
-local cameras = require 'threedee.cameras'
-local ma = require 'threedee.math'
+local actors = require 'threedee._actors'
 local class = require 'threedee.class'
 
-local depthMat = DepthMaterial:new(_td_depthMatActor)
+local depthMat = DepthMaterial:new(actors.depthMatActor)
 depthMat.alphaTest = 0.5
 ---@diagnostic disable-next-line: missing-parameter
 depthMat:compile()
 
-for _, shadowMapAft in ipairs(_td_shadowMapAft) do
+for _, shadowMapAft in ipairs(actors.shadowMapAfts) do
     aft(shadowMapAft)
 end
-
--- local normalMat = NormalMaterial:new(_td_normalMatActor)
--- normalMat:compile()
 
 ---@class SceneLights
 ---@field ambientLights AmbientLight[]
@@ -98,10 +92,10 @@ function Scene:finalize()
     local shadowMapAftIdx = 1
     ---@param shadow PointLightShadow
     local function allocShadowMapAft(shadow)
-        if shadowMapAftIdx > #_td_shadowMapAft then
+        if shadowMapAftIdx > #actors.shadowMapAfts then
             error('Not enough shadow map AFTs for the number of shadows in the scene. Please add more AFT actors to the _td_shadowMapAft table in threedee.xml.')
         end
-        shadow.shadowMapAft = _td_shadowMapAft[shadowMapAftIdx]
+        shadow.shadowMapAft = actors.shadowMapAfts[shadowMapAftIdx]
         shadowMapAftIdx = shadowMapAftIdx + 1
     end
     for _, light in ipairs(self.lights.pointLights) do
@@ -152,7 +146,7 @@ function Scene:draw()
         local oldCamera = self.camera
 
         for _, shadow in ipairs(self.lights.pointLightShadows) do
-            _td_depthInitQuad:Draw()
+            actors.depthInitQuad:Draw()
             self.camera = shadow.camera
             depthMat:onFrameStart(self)
             DISPLAY:ShaderFuck(depthMat.shader)
@@ -166,7 +160,7 @@ function Scene:draw()
             DISPLAY:ClearShaderFuck()
 
             shadow.shadowMapAft:Draw()
-            _td_clearBufferActor:Draw()
+            actors.clearBufferActor:Draw()
         end
 
         self.camera = oldCamera
