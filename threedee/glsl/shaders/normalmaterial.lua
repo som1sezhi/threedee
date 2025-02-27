@@ -6,30 +6,40 @@ local vert = [[#version 120
 #include <posvaryings_vert_defs>
 #include <normal_vert_defs>
 #include <texcoord_vert_defs>
+#include <color_vert_defs>
 
 void main() {
 	#include <normal_vert>
     #include <position_vert>
     #include <posvaryings_vert>
     #include <texcoord_vert>
+    #include <color_vert>
 }
 ]]
 
 local frag = [[#version 120
 #line 2 20014
+#include <utils>
+#include <position_frag_defs>
 #include <posvaryings_frag_defs>
 #include <normal_frag_defs>
 #include <texcoord_frag_defs>
-uniform sampler2D sampler0;
+#include <alpha_frag_defs>
+#include <alphamap_frag_defs>
+#include <alphadiscard_frag_defs>
 
 void main() {
     #include <normal_frag>
-    float alpha = texture2D(sampler0, vTextureCoord).a;
-    gl_FragColor = vec4(normal * 0.5 + 0.5, step(0.001, alpha));
+    #include <alpha_frag>
+    #include <alphamap_frag>
+    #include <alphadiscard_frag>
+    gl_FragColor = vec4(normal * 0.5 + 0.5, alpha);
 }
 ]]
 
 vert, frag = preprocess(vert, frag)
+
+print(frag)
 
 return {
     vert = vert, frag = frag

@@ -7,6 +7,7 @@ local class = require 'threedee.class'
 
 local depthMat = DepthMaterial:new(_td_depthMatActor)
 depthMat.alphaTest = 0.5
+---@diagnostic disable-next-line: missing-parameter
 depthMat:compile()
 
 for _, shadowMapAft in ipairs(_td_shadowMapAft) do
