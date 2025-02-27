@@ -21,8 +21,8 @@ PhongMaterial.mixins = {
 PhongMaterial.vertSource = sources.vert
 PhongMaterial.fragSource = sources.frag
 
-function PhongMaterial:new(shaderOrActor)
-    local o = Material.new(self, shaderOrActor)
+function PhongMaterial:new()
+    local o = Material.new(self)
     o.specular = Vec3:new(1, 1, 1)
     o.emissive = Vec3:new(0, 0, 0)
     o.shininess = 30

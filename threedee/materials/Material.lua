@@ -1,4 +1,5 @@
-local class = require "threedee.class"
+local class = require 'threedee.class'
+local actors = require 'threedee._actors'
 
 ---@class Material
 ---@field shader RageShaderProgram
@@ -13,23 +14,12 @@ Material.fragSource = ''
 
 ---@generic M : Material
 ---@param self M
----@param shaderOrActor RageShaderProgram | Actor
 ---@return M
-function Material.new(self, shaderOrActor)
+function Material.new(self)
     -- actors have a GetShader method, RageShaderPrograms don't
-    local shader
-    if shaderOrActor.GetShader then
-        local s = shaderOrActor:GetShader()
-        if s == nil then
-            error(
-                'actor ' .. tostring(shaderOrActor) ..
-                ' (' .. shaderOrActor:GetName() ..
-                ') does not have a shader program'
-            )
-        end
-        shader = s
-    else
-        shader = shaderOrActor
+    local shader = actors.getMaterialActor():GetShader()
+    if shader == nil then
+        error('a material actor does not have a shader attached')
     end
     local o = setmetatable({ shader = shader }, self)
     for _, mixin in ipairs(o.mixins) do

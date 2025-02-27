@@ -43,10 +43,6 @@ function Scene:new(aframe, camera)
             ambientLights = {},
             pointLights = {},
             pointLightShadows = {},
-        },
-
-        drawContext = {
-            isDrawingShadowMap = false
         }
     }
     o = setmetatable(o, self)
@@ -89,19 +85,10 @@ function Scene:addLight(light)
 end
 
 function Scene:finalize()
-    local shadowMapAftIdx = 1
-    ---@param shadow PointLightShadow
-    local function allocShadowMapAft(shadow)
-        if shadowMapAftIdx > #actors.shadowMapAfts then
-            error('Not enough shadow map AFTs for the number of shadows in the scene. Please add more AFT actors to the _td_shadowMapAft table in threedee.xml.')
-        end
-        shadow.shadowMapAft = actors.shadowMapAfts[shadowMapAftIdx]
-        shadowMapAftIdx = shadowMapAftIdx + 1
-    end
     for _, light in ipairs(self.lights.pointLights) do
         if light.castShadows then
             table.insert(self.lights.pointLightShadows, light.shadow)
-            allocShadowMapAft(light.shadow)
+            light.shadow.shadowMapAft = actors.getShadowMapAft()
         end
     end
 

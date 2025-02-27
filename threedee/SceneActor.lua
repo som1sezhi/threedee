@@ -161,7 +161,7 @@ function NoteFieldProxy:Draw()
     if self.scene._isDrawingShadowMap then
         local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
         ---@diagnostic disable-next-line: undefined-field
-        depthMat.alphaMap = self.material.colorMap
+        depthMat.alphaMap = self.material.colorMap or self.material.alphaMap
         ---@diagnostic disable-next-line: undefined-field
         depthMat.useVertexColors = self.material.useVertexColors and true or false
         ---@diagnostic disable-next-line: undefined-field
