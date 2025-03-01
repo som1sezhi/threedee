@@ -1,11 +1,11 @@
-local class = require 'threedee.class'
 local Vec3 = require 'threedee.math.Vec3'
 local Material = require 'threedee.materials.Material'
 local sources = require 'threedee.glsl.shaders.phongmaterial'
 local mixins = require 'threedee.materials.mixins'
 local materialClass = require 'threedee.materials.materialClass'
+local cfs = require 'threedee.materials.changeFuncs'
 
----@class PhongMaterial: Material, WithColor, WithAlpha, WithNormalMap
+---@class PhongMaterial: Material, WithCamera, WithColor, WithLights, WithAlpha, WithNormalMap
 ---@field specular Vec3 specular color
 ---@field emissive Vec3 emissive/ambient color
 ---@field shininess number sharpness of highlight
@@ -35,12 +35,8 @@ end
 ---@type fun(self: PhongMaterial, initProps?: PhongMaterial.P)
 PhongMaterial.set = Material.set
 
-function PhongMaterial:onFrameStart(scene)
-    Material.onFrameStart(self, scene)
-    local sha = self.shader
-    sha:uniform3fv('specular', self.specular)
-    sha:uniform3fv('emissive', self.emissive)
-    sha:uniform1f('shininess', self.shininess)
-end
+PhongMaterial.changeFuncs.specular = cfs.vec3ChangeFunc('specular')
+PhongMaterial.changeFuncs.emissive = cfs.vec3ChangeFunc('emissive')
+PhongMaterial.changeFuncs.shininess = cfs.floatChangeFunc('shininess')
 
 return PhongMaterial

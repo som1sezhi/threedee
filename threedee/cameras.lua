@@ -6,6 +6,8 @@ local OrientedObject  = require 'threedee.OrientedObject'
 -- local cos = math.cos
 
 ---@class Camera: OrientedObject
+---@field projMatrix Mat4
+---@field protected _projMatWasUpdated boolean
 
 ---@class PerspectiveCamera: Camera
 ---@field fov number
@@ -15,9 +17,9 @@ local OrientedObject  = require 'threedee.OrientedObject'
 ---@field projMatrix Mat4
 local PerspectiveCamera = class('PerspectiveCamera', OrientedObject)
 
----@class(partial) PerspectiveCamera.Partial: PerspectiveCamera
+---@class(partial) PerspectiveCamera.P: PerspectiveCamera, OrientedObject.P
 
----@param attrs PerspectiveCamera.Partial
+---@param attrs PerspectiveCamera.P
 ---@return PerspectiveCamera
 function PerspectiveCamera:new(attrs)
     local o = OrientedObject.new(self, attrs.position, attrs.rotation)
@@ -25,8 +27,19 @@ function PerspectiveCamera:new(attrs)
     o.aspectRatio = attrs.aspectRatio or SCREEN_WIDTH / SCREEN_HEIGHT
     o.nearDist = attrs.nearDist or 1
     o.farDist = attrs.farDist or 2000
-    o:updateProjMatrix()
+    o._projMatWasUpdated = false
+    o:_updateProjMatrix()
     return o
+end
+
+---@param props PerspectiveCamera.P
+function PerspectiveCamera:set(props)
+    if props.fov or props.aspectRatio or props.nearDist or props.farDist then
+        self:_updateProjMatrix()
+        self._projMatWasUpdated = true
+    end
+    OrientedObject.set(self, props)
+    self._projMatWasUpdated = false
 end
 
 -- ---@param target Vec3
@@ -43,7 +56,7 @@ end
 --     self.viewMatrix = tdMath.lookAt(self.position, self.position + front, self.worldUp)
 -- end
 
-function PerspectiveCamera:updateProjMatrix()
+function PerspectiveCamera:_updateProjMatrix()
     self.projMatrix = tdMath.perspective(
         self.fov, self.aspectRatio, self.nearDist, self.farDist
     )

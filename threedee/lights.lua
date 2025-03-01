@@ -13,6 +13,8 @@ local OrientedObject = require 'threedee.OrientedObject'
 ---@field shadow? LightShadow
 local Light = class('Light', OrientedObject)
 
+---@class (partial) Light.P: Light, OrientedObject.P
+
 ---@generic L: Light
 ---@param self L
 ---@param color? Vec3
@@ -27,38 +29,19 @@ function Light.new(self, color, intensity, position, rotation)
     return light
 end
 
-function Light:setPosition(newPos)
-    OrientedObject.setPosition(self, newPos)
+---@param props Light.P
+function Light:set(props)
+    OrientedObject.set(self, props)
     -- propagate transform changes to the shadow camera
-    if self.shadow then
-        self.shadow.camera:setPosition(newPos)
-    end
-end
-
-function Light:setRotation(newRot)
-    OrientedObject.setRotation(self, newRot)
-    -- propagate transform changes to the shadow camera
-    if self.shadow then
-        self.shadow.camera:setRotation(newRot)
-    end
-end
-
-function Light:lookAt(targetPos)
-    OrientedObject.lookAt(self, targetPos)
-    -- propagate transform changes to the shadow camera
-    if self.shadow then
-        self.shadow.camera:setRotation(self.rotation)
-    end
-end
-
-function Light:updateViewMatrix()
-    OrientedObject.updateViewMatrix(self)
-    -- propagate transform changes to the shadow camera
-    if self.shadow then
-        -- no need to recalc the matrix if we already have it
-        self.shadow.camera.viewMatrix = self.viewMatrix
-        self.shadow.camera._viewMatTranslationNeedsUpdate = false
-        self.shadow.camera._viewMatRotationNeedsUpdate = false
+    if self.shadow and (props.position or props.rotation or props.viewMatrix) then
+        self.shadow.camera:set({
+            position = props.position, -- allowed to be nil
+            rotation = props.rotation, -- allowed to be nil
+            -- in all transform cases, viewMatrix needs to be updated.
+            -- we already have the calculated matrix as self.viewMatrix, so
+            -- just pass it in here
+            viewMatrix = self.viewMatrix
+        })
     end
 end
 
@@ -67,27 +50,37 @@ end
 ---@class AmbientLight: Light
 local AmbientLight = class('AmbientLight', Light)
 
+---@class (partial) AmbientLight.P: AmbientLight, Light.P
+
 function AmbientLight:new(color, intensity)
     return Light.new(self, color, intensity)
 end
 
+---@type fun(self: AmbientLight, props: AmbientLight.P)
+AmbientLight.set = Light.set
+
 --------------------------------------------------------------------------------
 
 ---@class PointLightShadow
+---@field index number
 ---@field camera PerspectiveCamera
 ---@field shadowMapAft? ActorFrameTexture
 
 ---@class PointLight: Light
+---@field index number
 ---@field position Vec3
 ---@field castShadows boolean
 ---@field shadow PointLightShadow
 local PointLight = class('PointLight', Light)
 
+---@class (partial) PointLight.P: PointLight, Light.P
+
 function PointLight:new(color, intensity, position)
     local o = Light.new(self, color, intensity, position)
-    o.position = position or Vec3:new(0, 0, 0)
+    o.index = -1
     o.castShadows = false
     o.shadow = {
+        index = -1,
         camera = cameras.PerspectiveCamera:new({
             position = o.position,
             fov = math.rad(90),
@@ -97,6 +90,9 @@ function PointLight:new(color, intensity, position)
     }
     return o
 end
+
+---@type fun(self: PointLight, props: PointLight.P)
+PointLight.set = Light.set
 
 --------------------------------------------------------------------------------
 

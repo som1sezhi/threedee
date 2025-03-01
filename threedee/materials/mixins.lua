@@ -1,42 +1,5 @@
 local Vec3 = require 'threedee.math.Vec3'
-
----@param name string
----@return ChangeFunc
-local function uniform1iChangeFunc(name)
-    return function(self, newVal)
-        newVal = newVal or self[name]
-        self.shader:uniform1i(name, newVal and 1 or 0)
-    end
-end
-
----@param name string
----@return ChangeFunc
-local function uniform1fChangeFunc(name)
-    return function(self, newVal)
-        newVal = newVal or self[name]
-        self.shader:uniform1f(name, newVal)
-    end
-end
-
----@param name string
----@return ChangeFunc
-local function uniform3fvChangeFunc(name)
-    return function(self, newVal)
-        newVal = newVal or self[name]
-        self.shader:uniform3fv(name, newVal)
-    end
-end
-
----@param name string
----@return ChangeFunc
-local function uniformTextureOptionalChangeFunc(name)
-    return function(self, newVal)
-        newVal = newVal or self[name]
-        if newVal then
-            self.shader:uniformTexture(name, newVal)
-        end
-    end
-end
+local cfs = require 'threedee.materials.changeFuncs'
 
 ---@class MaterialMixin
 ---@field init? fun(self: Material)
@@ -52,16 +15,41 @@ local mixins = {}
 
 ---------------------------------------------------------------------
 
+---@class WithCamera: Material
+---@field useCamera true
+
 ---Handles camera view/projection transforms, as well as the `cameraPos` uniform.
 ---Almost every material should probably have this.
 ---
+---Defined fields: `usesCamera: true`
+---
 ---Associated snippets: `<position_*>`, optionally `<posvaryings_*>`
 mixins.CameraMixin = {
-    onFrameStart = function(self, scene)
-        self.shader:uniform3fv('cameraPos', scene.camera.position)
-        self.shader:uniformMatrix4fv('tdViewMatrix', scene.camera:getViewMatrix())
-        self.shader:uniformMatrix4fv('tdProjMatrix', scene.camera.projMatrix)
-    end
+    init = function(self)
+        ---@cast self WithCamera
+        self.useCamera = true
+    end,
+
+    onBeforeFirstDraw = function(self, scene)
+        self:dispatchEvent('cameraReplaced', { camera = scene.camera })
+    end,
+
+    eventHandlers = {
+        cameraPos = function(self, args)
+            self.shader:uniform3fv('cameraPos', args.value)
+        end,
+        viewMatrix = function(self, args)
+            self.shader:uniformMatrix4fv('tdViewMatrix', args.value)
+        end,
+        projMatrix = function(self, args)
+            self.shader:uniformMatrix4fv('tdProjMatrix', args.value)
+        end,
+        cameraReplaced = function(self, args)
+            self.shader:uniform3fv('cameraPos', args.camera.position)
+            self.shader:uniformMatrix4fv('tdViewMatrix', args.camera.viewMatrix)
+            self.shader:uniformMatrix4fv('tdProjMatrix', args.camera.projMatrix)
+        end
+    }
 }
 
 ---------------------------------------------------------------------
@@ -93,8 +81,8 @@ mixins.AlphaMixin = {
     end,
 
     changeFuncs = {
-        opacity = uniform1fChangeFunc('opacity'),
-        alphaTest = uniform1fChangeFunc('alphaTest'),
+        opacity = cfs.floatChangeFunc('opacity'),
+        alphaTest = cfs.floatChangeFunc('alphaTest'),
     }
 }
 
@@ -126,7 +114,7 @@ mixins.ColorMixin = {
     end,
 
     changeFuncs = {
-        color = uniform3fvChangeFunc('color'),
+        color = cfs.vec3ChangeFunc('color'),
         colorMap = function(self, newVal)
             ---@cast self WithColor
             newVal = newVal or self.colorMap
@@ -161,7 +149,7 @@ mixins.AlphaMapMixin = {
     -- on the depth material without switching shader programs
 
     changeFuncs = {
-        useVertexColorAlpha = uniform1iChangeFunc('useVertexColorAlpha'),
+        useVertexColorAlpha = cfs.boolChangeFunc('useVertexColorAlpha'),
         alphaMap = function(self, newVal)
             ---@cast self WithAlphaMap
             local alphaMap = newVal or self.alphaMap
@@ -199,68 +187,113 @@ mixins.NormalMapMixin = {
     end,
 
     changeFuncs = {
-        normalMap = uniformTextureOptionalChangeFunc('normalMap')
+        normalMap = cfs.optTextureChangeFunc('normalMap')
     }
 }
 
 ---------------------------------------------------------------------
 
+---@class WithLights: Material
+---@field useLights true
+
 ---Handles lights and shadows.
+---
+---Defined fields: `useLights: true`
 ---
 ---Associated snippets: `<lights_*>`
 mixins.LightsMixin = {
+    init = function(self)
+        ---@cast self WithLights
+        self.useLights = true
+    end,
+
     setDefines = function(self, scene)
         self.shader:define('USE_AMBIENT_LIGHT', #scene.lights.ambientLights > 0)
         self.shader:define('NUM_POINT_LIGHTS', tostring(#scene.lights.pointLights))
         self.shader:define('NUM_POINT_LIGHT_SHADOWS', tostring(#scene.lights.pointLightShadows))
     end,
 
+    onBeforeFirstDraw = function(self, scene)
+        local ambientLight = Vec3:new(0, 0, 0)
+        for _, light in ipairs(scene.lights.ambientLights) do
+            ambientLight:add(light.color:clone():scale(light.intensity))
+        end
+        self:dispatchEvent('ambientLight', { value = ambientLight })
+
+        for _, light in ipairs(scene.lights.pointLights) do
+            local idx = light.index
+            local col = light.color:clone():scale(light.intensity)
+            self:dispatchEvent('pointLightColor', { index = idx, value = col })
+            self:dispatchEvent('pointLightPosition', { index = idx, value = light.position })
+            self.shader:uniform1i(
+                'pointLights[' .. idx .. '].castShadows',
+                light.castShadows and 1 or 0
+            )
+            -- TODO remove this uniform
+            self.shader:uniform1f(
+                'pointLights[' .. idx .. '].intensity', 1
+            )
+        end
+
+        local shadowMap = nil
+        for _, shadow in ipairs(scene.lights.pointLightShadows) do
+            local idx = shadow.index
+            local camera = shadow.camera
+            self:dispatchEvent(
+                'pointLightShadowMatrix',
+                { index = idx, value = camera.projMatrix * camera.viewMatrix }
+            )
+            self:dispatchEvent(
+                'pointLightShadowNearDist',
+                { index = idx, value = camera.nearDist }
+            )
+            self:dispatchEvent(
+                'pointLightShadowFarDist',
+                { index = idx, value = camera.farDist }
+            )
+            shadowMap = shadow.shadowMapAft:GetTexture()
+            self.shader:uniformTexture('pointLightShadowMaps[' .. idx .. ']', shadowMap)
+        end
+
+        if shadowMap ~= nil then
+            self.shader:uniform2f('shadowMapTextureSize',
+                shadowMap:GetTextureWidth(), shadowMap:GetTextureHeight()
+            )
+            self.shader:uniform2f('shadowMapImageSize',
+                shadowMap:GetImageWidth(), shadowMap:GetImageHeight()
+            )
+        end
+    end,
+
     onFrameStart = function(self, scene)
-        local sha = self.shader
-        -- AMBIENT LIGHTS ---------------------------------------
-        if #scene.lights.ambientLights > 0 then
-            local ambientLight = Vec3:new(0, 0, 0)
-            for _, light in ipairs(scene.lights.ambientLights) do
-                ambientLight:add(light.color:clone():scale(light.intensity))
-            end
-            sha:uniform3fv('ambientLight', ambientLight)
-        end
-        -- POINT LIGHTS ---------------------------------------
-        for idx, light in ipairs(scene.lights.pointLights) do
-            local i = idx - 1
-            local prefix = 'pointLights[' .. i .. '].'
-            sha:uniform3fv(prefix .. 'color', light.color)
-            sha:uniform1f(prefix .. 'intensity', light.intensity)
-            sha:uniform3fv(prefix .. 'position', light.position)
-            sha:uniform1i(prefix .. 'castShadows', light.castShadows and 1 or 0)
-        end
+        self.shader:uniform1i('doShadows', scene.doShadows and 1 or 0)
+    end,
 
-        -- SHADOWS ---------------------------------------
-        sha:uniform1i('doShadows', scene.doShadows and 1 or 0)
-        if scene.doShadows then
-            local shadowMap = nil
-
-            for idx, shadow in ipairs(scene.lights.pointLightShadows) do
-                local i = idx - 1
-                shadowMap = shadow.shadowMapAft:GetTexture()
-                sha:uniformMatrix4fv('pointLightMatrices[' .. i .. ']',
-                    shadow.camera.projMatrix * shadow.camera.viewMatrix)
-                sha:uniformTexture('pointLightShadowMaps[' .. i .. ']', shadowMap)
-                sha:uniform1f('pointLightShadows[' .. i .. '].nearDist', shadow.camera.nearDist)
-                sha:uniform1f('pointLightShadows[' .. i .. '].farDist', shadow.camera.farDist)
-            end
-
-            -- TODO: can probably factor out
-            if shadowMap ~= nil then
-                sha:uniform2f('shadowMapTextureSize',
-                    shadowMap:GetTextureWidth(), shadowMap:GetTextureHeight()
-                )
-                sha:uniform2f('shadowMapImageSize',
-                    shadowMap:GetImageWidth(), shadowMap:GetImageHeight()
-                )
-            end
-        end
-    end
+    eventHandlers = {
+        ambientLight = function(self, args)
+            self.shader:uniform3fv('ambientLight', args.value)
+        end,
+        pointLightColor = function(self, args)
+            local uname = 'pointLights[' .. args.index .. '].color'
+            self.shader:uniform3fv(uname, args.value)
+        end,
+        pointLightPosition = function(self, args)
+            local uname = 'pointLights[' .. args.index .. '].position'
+            self.shader:uniform3fv(uname, args.value)
+        end,
+        pointLightShadowMatrix = function(self, args)
+            local uname = 'pointLightMatrices[' .. args.index .. ']'
+            self.shader:uniformMatrix4fv(uname, args.value)
+        end,
+        pointLightShadowNearDist = function(self, args)
+            local uname = 'pointLightShadows[' .. args.index .. '].nearDist'
+            self.shader:uniform1f(uname, args.value)
+        end,
+        pointLightShadowFarDist = function(self, args)
+            local uname = 'pointLightShadows[' .. args.index .. '].farDist'
+            self.shader:uniform1f(uname, args.value)
+        end,
+    }
 }
 
 ---------------------------------------------------------------------

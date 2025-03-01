@@ -9,9 +9,9 @@ local Mat4 = require 'threedee.math.Mat4'
 ---@field position Vec3
 ---@field rotation Quat
 ---@field viewMatrix Mat4
----@field _viewMatTranslationNeedsUpdate boolean
----@field _viewMatRotationNeedsUpdate boolean
 local OrientedObject = class('OrientedObject')
+
+---@class (partial) OrientedObject.P: OrientedObject
 
 ---@generic O: OrientedObject
 ---@param self O
@@ -23,51 +23,58 @@ function OrientedObject.new(self, position, rotation)
         position = position or Vec3:new(0, 0, 0),
         rotation = rotation or Quat:new(),
         viewMatrix = Mat4:new(),
-        _viewMatTranslationNeedsUpdate = true,
-        _viewMatRotationNeedsUpdate = true,
     }, self)
-    o:updateViewMatrix()
+    -- calculate viewMatrix via set method
+    o:set({
+        position = o.position,
+        rotation = o.rotation
+    })
     return o
 end
 
----@param newPos Vec3
-function OrientedObject:setPosition(newPos)
-    self.position = newPos
-    self._viewMatTranslationNeedsUpdate = true
-end
+local tempMat3 = Mat3:new()
 
----@param newRot Quat
-function OrientedObject:setRotation(newRot)
-    self.rotation = newRot
-    self._viewMatRotationNeedsUpdate = true
+---Sets the object's position and/or rotation. If you already calculated the
+---viewMatrix elsewhere, you can pass that in too to avoid re-calculating it here.
+---@param props OrientedObject.P
+function OrientedObject:set(props)
+    local viewMatRotationNeedsUpdate = self.rotation
+    local viewMatTranslationNeedsUpdate = self.position or self.rotation
+
+    for k, v in pairs(props) do
+        self[k] = v
+    end
+
+    if not props.viewMatrix then
+        -- update rotation part of view matrix
+        if viewMatRotationNeedsUpdate then
+            tempMat3:setFromQuat(self.rotation)
+            self.viewMatrix:setUpperMat3(tempMat3)
+        end
+        -- update translation part of view matrix (based on rotation part)
+        if viewMatTranslationNeedsUpdate then
+            local m = self.viewMatrix
+            m[13] = -self.position:dot(Vec3:new(m[1], m[5], m[9]))
+            m[14] = -self.position:dot(Vec3:new(m[2], m[6], m[10]))
+            m[15] = -self.position:dot(Vec3:new(m[3], m[7], m[11]))
+        end
+    end
+
+    self:onAfterSet(props)
 end
 
 ---@param targetPos Vec3
 ---@param up? Vec3
 function OrientedObject:lookAt(targetPos, up)
-    self.rotation = self.rotation:lookRotation(targetPos - self.position, up)
-    self._viewMatRotationNeedsUpdate = true
+    self:set({
+        rotation = self.rotation:lookRotation(targetPos - self.position, up)
+    })
 end
 
-function OrientedObject:updateViewMatrix()
-    if self._viewMatRotationNeedsUpdate then
-        local rot = Mat3:new():setFromQuat(self.rotation)
-        self.viewMatrix:setUpperMat3(rot)
-        self._viewMatTranslationNeedsUpdate = true -- update translation part of matrix based on new rotation part
-        self._viewMatRotationNeedsUpdate = false
-    end
-    if self._viewMatTranslationNeedsUpdate then
-        local m = self.viewMatrix
-        self.viewMatrix[13] = -self.position:dot(Vec3:new(m[1], m[5], m[9]))
-        self.viewMatrix[14] = -self.position:dot(Vec3:new(m[2], m[6], m[10]))
-        self.viewMatrix[15] = -self.position:dot(Vec3:new(m[3], m[7], m[11]))
-        self._viewMatTranslationNeedsUpdate = false
-    end
-end
-
-function OrientedObject:getViewMatrix()
-    self:updateViewMatrix()
-    return self.viewMatrix
+---Override this if you want to run some additional code whenever :set() is called,
+---e.g. for dispatching events to materials that need the updated values.
+---@param props OrientedObject.P
+function OrientedObject:onAfterSet(props)
 end
 
 return OrientedObject

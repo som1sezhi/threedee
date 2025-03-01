@@ -3,7 +3,7 @@ local sources = require 'threedee.glsl.shaders.normalmaterial'
 local mixins  = require 'threedee.materials.mixins'
 local materialClass = require 'threedee.materials.materialClass'
 
----@class NormalMaterial: Material, WithNormalMap, WithAlphaMap, WithAlpha
+---@class NormalMaterial: Material, WithCamera, WithNormalMap, WithAlphaMap, WithAlpha
 local NormalMaterial = materialClass('NormalMaterial', Material, {
     mixins.CameraMixin,
     mixins.NormalMapMixin,

@@ -18,7 +18,7 @@ return {
             lightDir /= lightDist;
             float attenuation = 1. / (1. + 0.000002 * lightDist * lightDist);
 
-            #if defined(NUM_POINT_LIGHTS) && NUM_POINT_LIGHTS > 0
+            #if defined(NUM_POINT_LIGHT_SHADOWS) && NUM_POINT_LIGHT_SHADOWS > 0
                 if (light.castShadows && doShadows) {
                     float shadow = calcShadow(
                         pointLightSpacePos[shadowIdx],

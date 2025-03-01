@@ -11,6 +11,8 @@ local actors = require 'threedee._actors'
 ---@field mixins MaterialMixin[]
 ---@field changeFuncs {[string]: ChangeFunc}
 ---@field eventHandlers {[string]: EventHandler}
+---@field useCamera? boolean
+---@field useLights? boolean
 local Material = class('Material')
 
 Material.mixins = {}

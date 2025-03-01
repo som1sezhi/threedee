@@ -4,7 +4,7 @@ local sources = require 'threedee.glsl.shaders.depthmaterial'
 local mixins  = require 'threedee.materials.mixins'
 
 
----@class DepthMaterial: Material, WithAlphaMap, WithAlpha
+---@class DepthMaterial: Material, WithCamera, WithAlphaMap, WithAlpha
 local DepthMaterial = materialClass('DepthMaterial', Material, {
     mixins.CameraMixin,
     mixins.AlphaMapMixin,
