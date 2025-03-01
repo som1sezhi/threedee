@@ -1,7 +1,7 @@
 return {
     snippet = [[
     #ifdef USE_VERTEX_COLORS
-        if (useAlphaVertexColors)
+        if (useVertexColorAlpha)
             alpha *= vColor.a;
     #endif
     if (useAlphaMap) {

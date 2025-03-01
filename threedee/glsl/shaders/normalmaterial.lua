@@ -39,8 +39,6 @@ void main() {
 
 vert, frag = preprocess(vert, frag)
 
-print(frag)
-
 return {
     vert = vert, frag = frag
 }

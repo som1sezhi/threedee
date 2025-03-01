@@ -1,14 +1,20 @@
 local class = require 'threedee.class'
 local actors = require 'threedee._actors'
 
+---@alias EventHandler fun(self: Material, args: table)
+---@alias ChangeFunc fun(self: Material, newVal?: any)
+
 ---@class Material
 ---@field shader RageShaderProgram
 ---@field vertSource? string
 ---@field fragSource? string
 ---@field mixins MaterialMixin[]
+---@field changeFuncs {[string]: ChangeFunc}
+---@field eventHandlers {[string]: EventHandler}
 local Material = class('Material')
 
 Material.mixins = {}
+Material.eventHandlers = {}
 
 ---@generic M : Material
 ---@param self M
@@ -55,6 +61,66 @@ function Material:setDefines(scene)
     end
 end
 
+---Set properties of the material, and updates the corresponding shader uniforms.
+---@param props Material
+function Material:set(props)
+    for k, v in pairs(props) do
+        self[k] = v
+        local changeFunc = self.changeFuncs[k]
+        if changeFunc then
+            changeFunc(self)
+        end
+    end
+end
+
+local function allPairsIter(state, prevKey)
+    local key, val = next(state.currTable, prevKey)
+    -- exits if key has not been found yet
+    -- (note that this also exits if key is nil, since nil can never be an index)
+    while state.foundKeys[key] do
+        key, val = next(state.currTable, key)
+    end
+    if key ~= nil then
+        state.foundKeys[key] = true
+        return key, val
+    else
+        while key == nil do
+            state.currTable = getmetatable(state.currTable).__index
+            if type(state.currTable) ~= 'table' then
+                return -- end iteration (no more __index tables to iterate through)
+            end
+            key, val = next(state.currTable, nil)
+            while state.foundKeys[key] do
+                key, val = next(state.currTable, key)
+            end
+        end
+        state.foundKeys[key] = true
+        return key, val
+    end
+end
+
+local function allPairs(tab)
+    local state = {
+        currTable = tab,
+        foundKeys = {}
+    }
+    return allPairsIter, state, nil
+end
+
+---Called just before drawing the scene for the first time.
+---This function ensures that all the shader uniforms are initialized before drawing.
+---@param scene Scene
+function Material:onBeforeFirstDraw(scene)
+    for _, changeFunc in allPairs(self.changeFuncs) do
+        changeFunc(self)
+    end
+    for _, mixin in ipairs(self.mixins) do
+        if mixin.onBeforeFirstDraw then
+            mixin.onBeforeFirstDraw(self, scene)
+        end
+    end
+end
+
 ---Called at the beginning of each frame.
 ---@param scene Scene
 function Material:onFrameStart(scene)
@@ -72,6 +138,16 @@ function Material:onBeforeDraw(act)
         if mixin.onBeforeDraw then
             mixin.onBeforeDraw(self, act)
         end
+    end
+end
+
+---Dispatch an event to the material.
+---@param event string
+---@param args table
+function Material:dispatchEvent(event, args)
+    local handler = self.eventHandlers[event]
+    if handler then
+        handler(self, args)
     end
 end
 

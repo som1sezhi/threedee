@@ -1,10 +1,51 @@
 local Vec3 = require 'threedee.math.Vec3'
 
+---@param name string
+---@return ChangeFunc
+local function uniform1iChangeFunc(name)
+    return function(self, newVal)
+        newVal = newVal or self[name]
+        self.shader:uniform1i(name, newVal and 1 or 0)
+    end
+end
+
+---@param name string
+---@return ChangeFunc
+local function uniform1fChangeFunc(name)
+    return function(self, newVal)
+        newVal = newVal or self[name]
+        self.shader:uniform1f(name, newVal)
+    end
+end
+
+---@param name string
+---@return ChangeFunc
+local function uniform3fvChangeFunc(name)
+    return function(self, newVal)
+        newVal = newVal or self[name]
+        self.shader:uniform3fv(name, newVal)
+    end
+end
+
+---@param name string
+---@return ChangeFunc
+local function uniformTextureOptionalChangeFunc(name)
+    return function(self, newVal)
+        newVal = newVal or self[name]
+        if newVal then
+            self.shader:uniformTexture(name, newVal)
+        end
+    end
+end
+
 ---@class MaterialMixin
 ---@field init? fun(self: Material)
 ---@field setDefines? fun(self: Material, scene: Scene)
+---@field onBeforeFirstDraw? fun(self: Material, scene: Scene)
 ---@field onFrameStart? fun(self: Material, scene: Scene)
 ---@field onBeforeDraw? fun(self: Material, act: ActorWithMaterial | NoteFieldProxy)
+---@field changeFuncs? {[string]: ChangeFunc}
+---@field eventHandlers? {[string]: EventHandler}
 
 ---@type {[string]: MaterialMixin}
 local mixins = {}
@@ -51,30 +92,29 @@ mixins.AlphaMixin = {
         self:_defineFlag('USE_ALPHA_HASH', self.alphaHash)
     end,
 
-    onFrameStart = function(self)
-        ---@cast self WithAlpha
-        local sha = self.shader
-        sha:uniform1f('opacity', self.opacity)
-        sha:uniform1f('alphaTest', self.alphaTest)
-    end
+    changeFuncs = {
+        opacity = uniform1fChangeFunc('opacity'),
+        alphaTest = uniform1fChangeFunc('alphaTest'),
+    }
 }
 
 ---------------------------------------------------------------------
 
 ---@class WithColor: Material
 ---@field color Vec3
----@field colorMap? RageTexture|'sampler0'
+---@field colorMap RageTexture|'sampler0'|false
 ---@field useVertexColors boolean
 
 ---Handles base color, color maps, and vertex colors.
 ---
----Defined fields: `color: Vec3`, `colorMap?: RageTexture|'sampler0'`, `useVertexColors: boolean`
+---Defined fields: `color: Vec3`, `colorMap: RageTexture|'sampler0'|false`, `useVertexColors: boolean`
 ---
 ---Associated snippets: `<color_*>`
 mixins.ColorMixin = {
     init = function(self)
         ---@cast self WithColor
         self.color = self.color or Vec3:new(1, 1, 1)
+        self.colorMap = self.colorMap or false
         self.useVertexColors = self.useVertexColors or false
     end,
 
@@ -85,73 +125,82 @@ mixins.ColorMixin = {
         self:_defineFlag('USE_VERTEX_COLORS', self.useVertexColors)
     end,
 
-    onFrameStart = function(self)
-        ---@cast self WithColor
-        local sha = self.shader
-        sha:uniform3fv('color', self.color)
-        if self.colorMap and self.colorMap ~= 'sampler0' then
-            sha:uniformTexture('colorMap', self.colorMap --[[@as RageTexture]])
-        end
-    end
+    changeFuncs = {
+        color = uniform3fvChangeFunc('color'),
+        colorMap = function(self, newVal)
+            ---@cast self WithColor
+            newVal = newVal or self.colorMap
+            if newVal and newVal ~= 'sampler0' then
+                self.shader:uniformTexture('colorMap', newVal)
+            end
+        end,
+    }
 }
 
 ---------------------------------------------------------------------
 
 ---@class WithAlphaMap: Material
----@field alphaMap? RageTexture|'sampler0'
----@field useVertexColors boolean
+---@field alphaMap RageTexture|'sampler0'|false
+---@field useVertexColorAlpha boolean
 
 ---Handles alpha maps. This is for materials that do not have color maps otherwise.
 ---USE_VERTEX_COLORS should be defined at the top of shaders that support this mixin.
 ---
----Defined fields: `alphaMap?: RageTexture|'sampler0'`, `useVertexColors: boolean`
+---Defined fields: `alphaMap: RageTexture|'sampler0'|false`, `useVertexColorAlpha: boolean`
 ---
 ---Associated snippets: `<alphamap_*>`
 mixins.AlphaMapMixin = {
     init = function(self)
         ---@cast self WithAlphaMap
-        self.useVertexColors = self.useVertexColors or false
+        self.alphaMap = self.alphaMap or false
+        self.useVertexColorAlpha = self.useVertexColorAlpha or false
     end,
 
     -- we use uniforms instead of define flags to switch between the different behaviors,
     -- since for the purposes of shadowmaps, i'd like to be able to change properties
     -- on the depth material without switching shader programs
-    onFrameStart = function(self)
-        ---@cast self WithAlphaMap
-        local sha = self.shader
-        sha:uniform1i('useAlphaMap', self.alphaMap and 1 or 0)
-        sha:uniform1i('useAlphaVertexColors', self.useVertexColors and 1 or 0)
-        if self.alphaMap then
-            sha:uniform1i('useSampler0AlphaMap', self.alphaMap == 'sampler0' and 1 or 0)
-            if self.alphaMap ~= 'sampler0' then
-                sha:uniformTexture('alphaMap', self.alphaMap --[[@as RageTexture]])
+
+    changeFuncs = {
+        useVertexColorAlpha = uniform1iChangeFunc('useVertexColorAlpha'),
+        alphaMap = function(self, newVal)
+            ---@cast self WithAlphaMap
+            local alphaMap = newVal or self.alphaMap
+            local sha = self.shader
+            sha:uniform1i('useAlphaMap', alphaMap and 1 or 0)
+            if self.alphaMap then
+                sha:uniform1i('useSampler0AlphaMap', alphaMap == 'sampler0' and 1 or 0)
+                if self.alphaMap ~= 'sampler0' then
+                    sha:uniformTexture('alphaMap', alphaMap)
+                end
             end
-        end
-    end
+        end,
+    }
 }
 
 ---------------------------------------------------------------------
 
 ---@class WithNormalMap: Material
----@field normalMap? RageTexture
+---@field normalMap RageTexture|false
 
 ---Handles normal maps.
 ---
----Defined fields: `normalMap?: RageTexture`
+---Defined fields: `normalMap: RageTexture|false`
 ---
 ---Associated snippets: `<normal_*>`
 mixins.NormalMapMixin = {
+    init = function(self)
+        ---@cast self WithNormalMap
+        self.normalMap = self.normalMap or false
+    end,
+
     setDefines = function(self)
         ---@cast self WithNormalMap
         self:_defineFlag('USE_NORMAL_MAP', self.normalMap)
     end,
 
-    onFrameStart = function(self)
-        ---@cast self WithNormalMap
-        if self.normalMap then
-            self.shader:uniformTexture('normalMap', self.normalMap)
-        end
-    end
+    changeFuncs = {
+        normalMap = uniformTextureOptionalChangeFunc('normalMap')
+    }
 }
 
 ---------------------------------------------------------------------

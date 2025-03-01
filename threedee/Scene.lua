@@ -27,6 +27,7 @@ end
 ---@field lights SceneLights
 ---@field _isDrawingShadowMap boolean
 ---@field _overrideMaterial? Material
+---@field private _firstDraw boolean
 local Scene = class('Scene')
 
 ---@param aframe ActorFrame
@@ -45,7 +46,10 @@ function Scene:new(aframe, camera)
             ambientLights = {},
             pointLights = {},
             pointLightShadows = {},
-        }
+        },
+
+        _isDrawingShadowMap = false,
+        _firstDraw = true,
     }
     o = setmetatable(o, self)
 
@@ -102,34 +106,15 @@ function Scene:finalize()
     end
 end
 
--- function Scene:setShaders()
---     local d = depthMat.program
---     for _, obj in ipairs(self.actors) do
---         if obj.actor.SetTarget == nil then
---         obj.actor:SetShader(d)
---         end
---     end
---     P1:SetArrowShader(d)
---     P1:SetHoldShader(d)
---     P1:SetReceptorShader(d)
--- end
-
--- function Scene:clearShaders()
---     local pm
---     for _, obj in ipairs(self.actors) do
---         if obj.actor.SetTarget == nil then
-
---             obj.actor:SetShader(obj.material.program)
---         else
---             pm = obj.material.program
---         end
---     end
---     P1:SetArrowShader(pm)
---     P1:SetHoldShader(pm)
---     P1:SetReceptorShader(pm)
--- end
-
 function Scene:draw()
+    if self._firstDraw then
+        for _, material in ipairs(self.materials) do
+            material:onBeforeFirstDraw(self)
+        end
+        depthMat:onBeforeFirstDraw(self)
+        self._firstDraw = false
+    end
+
     if self.doShadows then
         -- do shadowmap depth pass
         local oldCamera = self.camera
@@ -154,6 +139,7 @@ function Scene:draw()
 
         self.camera = oldCamera
     end
+
     for _, material in ipairs(self.materials) do
         material:onFrameStart(self)
     end

@@ -111,15 +111,14 @@ end
 function ActorWithMaterial:Draw()
     if self.scene._isDrawingShadowMap then
         local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
-        ---@diagnostic disable-next-line: undefined-field
-        depthMat.alphaMap = self.material.colorMap
-        ---@diagnostic disable-next-line: undefined-field
-        depthMat.useVertexColors = self.material.useVertexColors and true or false
-        ---@diagnostic disable-next-line: undefined-field
-        depthMat.opacity = self.material.opacity
-        -- update uniforms related to alpha for depth material
-        AlphaMapMixin.onFrameStart(depthMat, self.scene)
-        AlphaMixin.onFrameStart(depthMat, self.scene)
+        depthMat:set({
+            ---@diagnostic disable-next-line: undefined-field
+            alphaMap = self.material.colorMap or self.material.alphaMap or false,
+            ---@diagnostic disable-next-line: undefined-field
+            useVertexColorAlpha = (self.material.useVertexColors or self.material.useVertexColorAlpha) and true or false,
+            ---@diagnostic disable-next-line: undefined-field
+            opacity = self.material.opacity or 1
+        })
         self.actor:Draw()
     else
         self.material:onBeforeDraw(self)
@@ -160,15 +159,14 @@ end
 function NoteFieldProxy:Draw()
     if self.scene._isDrawingShadowMap then
         local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
-        ---@diagnostic disable-next-line: undefined-field
-        depthMat.alphaMap = self.material.colorMap or self.material.alphaMap
-        ---@diagnostic disable-next-line: undefined-field
-        depthMat.useVertexColors = self.material.useVertexColors and true or false
-        ---@diagnostic disable-next-line: undefined-field
-        depthMat.opacity = self.material.opacity
-        -- update uniforms related to alpha for depth material
-        AlphaMapMixin.onFrameStart(depthMat, self.scene)
-        AlphaMixin.onFrameStart(depthMat, self.scene)
+        depthMat:set({
+            ---@diagnostic disable-next-line: undefined-field
+            alphaMap = self.material.colorMap or self.material.alphaMap or false,
+            ---@diagnostic disable-next-line: undefined-field
+            useVertexColorAlpha = (self.material.useVertexColors or self.material.useVertexColorAlpha) and true or false,
+            ---@diagnostic disable-next-line: undefined-field
+            opacity = self.material.opacity or 1
+        })
         self.actor:Draw()
     else
         DISPLAY:ShaderFuck(self.material.shader)

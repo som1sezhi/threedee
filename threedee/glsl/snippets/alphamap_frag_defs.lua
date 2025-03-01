@@ -6,7 +6,7 @@ return {
 
 uniform bool useAlphaMap;
 uniform bool useSampler0AlphaMap;
-uniform bool useAlphaVertexColors;
+uniform bool useVertexColorAlpha;
 uniform sampler2D alphaMap;
 uniform sampler2D sampler0;
 ]],
