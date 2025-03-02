@@ -137,6 +137,8 @@ function Scene:finalize()
         ---@diagnostic disable-next-line: invisible
         if selfC._projMatWasUpdated then
             dispatchToCameraMats('projMatrix', { value = selfC.projMatrix })
+            ---@diagnostic disable-next-line: invisible
+            selfC._projMatWasUpdated = false
         end
     end
 

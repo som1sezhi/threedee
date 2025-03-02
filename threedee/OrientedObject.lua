@@ -38,6 +38,12 @@ local tempMat3 = Mat3:new()
 ---viewMatrix elsewhere, you can pass that in too to avoid re-calculating it here.
 ---@param props OrientedObject.P
 function OrientedObject:set(props)
+    self:_set(props)
+    self:onAfterSet(props)
+end
+
+---@param props OrientedObject.P
+function OrientedObject:_set(props)
     local viewMatRotationNeedsUpdate = self.rotation
     local viewMatTranslationNeedsUpdate = self.position or self.rotation
 
@@ -59,15 +65,15 @@ function OrientedObject:set(props)
             m[15] = -self.position:dot(Vec3:new(m[3], m[7], m[11]))
         end
     end
-
-    self:onAfterSet(props)
 end
 
+---@param eyePos Vec3
 ---@param targetPos Vec3
 ---@param up? Vec3
-function OrientedObject:lookAt(targetPos, up)
+function OrientedObject:lookAt(eyePos, targetPos, up)
     self:set({
-        rotation = self.rotation:lookRotation(targetPos - self.position, up)
+        position = eyePos,
+        rotation = self.rotation:lookRotation(targetPos - eyePos, up)
     })
 end
 

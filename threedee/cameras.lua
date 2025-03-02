@@ -32,14 +32,16 @@ function PerspectiveCamera:new(attrs)
     return o
 end
 
+---@type fun(self: PerspectiveCamera, props: PerspectiveCamera.P)
+PerspectiveCamera.set = OrientedObject.set
+
 ---@param props PerspectiveCamera.P
-function PerspectiveCamera:set(props)
+function PerspectiveCamera:_set(props)
+    OrientedObject._set(self, props)
     if props.fov or props.aspectRatio or props.nearDist or props.farDist then
         self:_updateProjMatrix()
         self._projMatWasUpdated = true
     end
-    OrientedObject.set(self, props)
-    self._projMatWasUpdated = false
 end
 
 -- ---@param target Vec3

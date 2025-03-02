@@ -30,8 +30,8 @@ function Light.new(self, color, intensity, position, rotation)
 end
 
 ---@param props Light.P
-function Light:set(props)
-    OrientedObject.set(self, props)
+function Light:_set(props)
+    OrientedObject._set(self, props)
     -- propagate transform changes to the shadow camera
     if self.shadow and (props.position or props.rotation or props.viewMatrix) then
         self.shadow.camera:set({
