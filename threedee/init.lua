@@ -1,5 +1,5 @@
 local math = require 'threedee.math'
-local sceneActors = require 'threedee.SceneActor'
+local sceneActors = require 'threedee.sceneactors'
 local cameras = require 'threedee.cameras'
 local lights = require 'threedee.lights'
 
@@ -17,7 +17,7 @@ local td = {
 
     PerspectiveCamera = cameras.PerspectiveCamera,
 
-    ActorWithMaterial = sceneActors.ActorWithMaterial,
+    MeshActor = sceneActors.MeshActor,
     NoteFieldProxy = sceneActors.NoteFieldProxy,
 
     PhongMaterial = require 'threedee.materials.PhongMaterial',

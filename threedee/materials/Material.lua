@@ -134,7 +134,7 @@ function Material:onFrameStart(scene)
 end
 
 ---Called before drawing an actor with this material.
----@param act ActorWithMaterial | NoteFieldProxy
+---@param act ActorWithMaterial
 function Material:onBeforeDraw(act)
     for _, mixin in ipairs(self.mixins) do
         if mixin.onBeforeDraw then

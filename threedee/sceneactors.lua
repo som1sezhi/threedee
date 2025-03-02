@@ -87,38 +87,60 @@ end
 
 --------------------------------------------------------------------------------
 
----A Sprite, Model, or Polygon associated with a material.
+---A SceneActor associated with a material.
 ---@class ActorWithMaterial: SceneActor
 ---@field material Material
 local ActorWithMaterial = class('ActorWithMaterial', SceneActor)
 
----@param actor Sprite | Model | Polygon | ActorWithMaterial
+---@generic A: ActorWithMaterial
+---@param self A
+---@param actor Actor
 ---@param material Material
+---@return A
 function ActorWithMaterial:new(actor, material)
     local o = SceneActor.new(self, actor)
     o.material = material
+    return o
+end
+
+---@param overrideMaterial DepthMaterial
+function ActorWithMaterial:_prepareOverrideMaterialAlpha(overrideMaterial)
+    local mat = self.material
+    overrideMaterial:set({
+        ---@diagnostic disable-next-line: undefined-field
+        alphaMap = mat.colorMap or mat.alphaMap or false,
+        ---@diagnostic disable-next-line: undefined-field
+        useVertexColorAlpha = (mat.useVertexColors or mat.useVertexColorAlpha) and true or false,
+        ---@diagnostic disable-next-line: undefined-field
+        opacity = mat.opacity or 1
+    })
+end
+
+--------------------------------------------------------------------------------
+
+---A Sprite, Model, or Polygon associated with a material.
+---@class MeshActor: ActorWithMaterial
+local MeshActor = class('MeshActor', ActorWithMaterial)
+
+---@param actor Sprite | Model | Polygon | MeshActor
+---@param material Material
+function MeshActor:new(actor, material)
+    local o = ActorWithMaterial.new(self, actor, material)
     actor:zbuffer(1)
     actor:zwrite(1)
     actor:ztestmode('writeonpass')
     return o
 end
 
-function ActorWithMaterial:onFinalize(scene)
-    SceneActor.onFinalize(self, scene)
+function MeshActor:onFinalize(scene)
+    ActorWithMaterial.onFinalize(self, scene)
     self.actor:SetShader(self.material.shader)
 end
 
-function ActorWithMaterial:Draw()
+function MeshActor:Draw()
     if self.scene._isDrawingShadowMap then
         local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
-        depthMat:set({
-            ---@diagnostic disable-next-line: undefined-field
-            alphaMap = self.material.colorMap or self.material.alphaMap or false,
-            ---@diagnostic disable-next-line: undefined-field
-            useVertexColorAlpha = (self.material.useVertexColors or self.material.useVertexColorAlpha) and true or false,
-            ---@diagnostic disable-next-line: undefined-field
-            opacity = self.material.opacity or 1
-        })
+        self:_prepareOverrideMaterialAlpha(depthMat)
         self.actor:Draw()
     else
         self.material:onBeforeDraw(self)
@@ -129,10 +151,9 @@ end
 --------------------------------------------------------------------------------
 
 ---A notefield proxy associated with a material.
----@class NoteFieldProxy: SceneActor
----@field material Material
+---@class NoteFieldProxy: ActorWithMaterial
 ---@field player Player
-local NoteFieldProxy = class('NoteFieldProxy', SceneActor)
+local NoteFieldProxy = class('NoteFieldProxy', ActorWithMaterial)
 
 ---Creates a new wrapped notefield proxy, and sets the proxy target to the
 ---player's notefield.
@@ -140,16 +161,16 @@ local NoteFieldProxy = class('NoteFieldProxy', SceneActor)
 ---@param material Material
 ---@param player Player
 function NoteFieldProxy:new(actor, material, player)
-    local o = SceneActor.new(self, actor)
-    o.material = material
+    local o = ActorWithMaterial.new(self, actor, material)
     o.player = player
     actor:SetTarget(player:GetChild('NoteField'))
     return o
 end
 
 function NoteFieldProxy:onFinalize(scene)
-    SceneActor.onFinalize(self, scene)
+    ActorWithMaterial.onFinalize(self, scene)
     local shader = self.material.shader
+    -- probably don't need to do this since we use shaderfuck but eh
     self.player:SetArrowShader(shader)
 	self.player:SetHoldShader(shader)
 	self.player:SetReceptorShader(shader)
@@ -159,14 +180,7 @@ end
 function NoteFieldProxy:Draw()
     if self.scene._isDrawingShadowMap then
         local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
-        depthMat:set({
-            ---@diagnostic disable-next-line: undefined-field
-            alphaMap = self.material.colorMap or self.material.alphaMap or false,
-            ---@diagnostic disable-next-line: undefined-field
-            useVertexColorAlpha = (self.material.useVertexColors or self.material.useVertexColorAlpha) and true or false,
-            ---@diagnostic disable-next-line: undefined-field
-            opacity = self.material.opacity or 1
-        })
+        self:_prepareOverrideMaterialAlpha(depthMat)
         self.actor:Draw()
     else
         DISPLAY:ShaderFuck(self.material.shader)
@@ -180,6 +194,6 @@ end
 
 return {
     SceneActor = SceneActor,
-    ActorWithMaterial = ActorWithMaterial,
+    MeshActor = MeshActor,
     NoteFieldProxy = NoteFieldProxy
 }

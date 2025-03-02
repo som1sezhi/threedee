@@ -6,7 +6,7 @@ local cfs = require 'threedee.materials.changeFuncs'
 ---@field setDefines? fun(self: Material, scene: Scene)
 ---@field onBeforeFirstDraw? fun(self: Material, scene: Scene)
 ---@field onFrameStart? fun(self: Material, scene: Scene)
----@field onBeforeDraw? fun(self: Material, act: ActorWithMaterial | NoteFieldProxy)
+---@field onBeforeDraw? fun(self: Material, act: ActorWithMaterial)
 ---@field changeFuncs? {[string]: ChangeFunc}
 ---@field eventHandlers? {[string]: EventHandler}
 
