@@ -23,6 +23,7 @@ local td = {
     PhongMaterial = require 'threedee.materials.PhongMaterial',
     DepthMaterial = require 'threedee.materials.DepthMaterial',
     NormalMaterial = require 'threedee.materials.NormalMaterial',
+    UnlitMaterial = require 'threedee.materials.UnlitMaterial',
     UVMaterial = require 'threedee.materials.UVMaterial',
 
     AmbientLight = lights.AmbientLight,

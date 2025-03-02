@@ -1,7 +1,7 @@
 local preprocess = require 'threedee.glsl.preprocess'
 
 local vert = [[#version 120
-#line 2 10021
+#line 2 1002122
 #include <position_vert_defs>
 #include <texcoord_vert_defs>
 
@@ -12,7 +12,7 @@ void main() {
 ]]
 
 local frag = [[#version 120
-#line 2 20021
+#line 2 2002122
 #include <texcoord_frag_defs>
 
 void main() {
