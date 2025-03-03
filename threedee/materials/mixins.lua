@@ -225,14 +225,6 @@ mixins.LightsMixin = {
             local col = light.color:clone():scale(light.intensity)
             self:dispatchEvent('pointLightColor', { index = idx, value = col })
             self:dispatchEvent('pointLightPosition', { index = idx, value = light.position })
-            self.shader:uniform1i(
-                'pointLights[' .. idx .. '].castShadows',
-                light.castShadows and 1 or 0
-            )
-            -- TODO remove this uniform
-            self.shader:uniform1f(
-                'pointLights[' .. idx .. '].intensity', 1
-            )
         end
 
         local shadowMap = nil

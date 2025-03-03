@@ -12,9 +12,7 @@ struct ShadowInfo {
 #if defined(NUM_POINT_LIGHTS) && NUM_POINT_LIGHTS > 0
     struct PointLight {
         vec3 color;
-        float intensity;
         vec3 position;
-        bool castShadows;
     };
     uniform PointLight pointLights[NUM_POINT_LIGHTS];
 #endif

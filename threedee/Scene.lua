@@ -110,9 +110,7 @@ function Scene:addLight(light)
     if name == 'AmbientLight' then
         table.insert(self.lights.ambientLights, light)
     elseif name == 'PointLight' then
-        ---@cast light PointLight
         table.insert(self.lights.pointLights, light)
-        light.index = #self.lights.pointLights - 1
     end
 end
 
@@ -136,6 +134,8 @@ function Scene:finalize()
         end
     end
 
+    -- CAMERA ---------------------------------------------
+
     self.camera.onUpdate = function(selfC, props)
         ---@cast selfC Camera
         ---@cast props PerspectiveCamera.P
@@ -153,6 +153,8 @@ function Scene:finalize()
         end
     end
 
+    -- AMBIENT LIGHTS ---------------------------------------------
+
     local function ambientLightOnUpdate(_, props)
         ---@cast props AmbientLight.P
         if props.color or props.intensity then
@@ -168,6 +170,8 @@ function Scene:finalize()
         -- update ambient light uniforms on ambient light change
         light.onUpdate = ambientLightOnUpdate
     end
+
+    -- POINT LIGHTS ---------------------------------------------
 
     local function pointLightOnUpdate(selfL, props)
         ---@cast props PointLight.P
@@ -186,10 +190,14 @@ function Scene:finalize()
             )
         end
     end
-    for _, light in ipairs(lights.pointLights) do
+
+    -- sort such that shadow-casting lights come first
+    table.sort(lights.pointLights, function(a, b) return a.castShadows end)
+    for i, light in ipairs(lights.pointLights) do
+        local idx = i - 1
+        light.index = idx
         light.onUpdate = pointLightOnUpdate
         if light.castShadows then
-            local idx = #self.lights.pointLightShadows
             table.insert(self.lights.pointLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
             light.shadow.index = idx
