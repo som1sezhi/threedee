@@ -21,6 +21,10 @@ local actors = {
     whiteSpr = _td_whiteSpr
 }
 
+for _, shadowMapAft in ipairs(actors.shadowMapAfts) do
+    aft(shadowMapAft)
+end
+
 local materialIdx = 1
 function actors.getMaterialActor()
     local act = actors.materialActors[materialIdx]

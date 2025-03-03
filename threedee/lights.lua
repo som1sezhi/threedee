@@ -2,15 +2,13 @@ local class = require 'threedee.class'
 local Vec3 = require 'threedee.math.Vec3'
 local cameras = require 'threedee.cameras'
 local OrientedObject = require 'threedee.OrientedObject'
-
----@class LightShadow
----@field camera Camera
+local shadows = require 'threedee.shadows'
 
 ---Base class for all lights
 ---@class Light: OrientedObject
 ---@field color Vec3
 ---@field intensity number
----@field shadow? LightShadow
+---@field shadow? StandardShadow
 ---@field scene Scene
 local Light = class('Light', OrientedObject)
 
@@ -41,11 +39,12 @@ end
 ---@param props Light.P
 function Light:_update(props)
     OrientedObject._update(self, props)
-    -- propagate transform changes to the shadow camera
-    if self.shadow and (props.position or props.rotation or props.viewMatrix) then
+    if self.shadow and (props.position or props.rotation or props.viewMatrix or props.shadow) then
+        -- propagate transform changes to the shadow camera
+        -- or, if the shadow was replaced entirely, propagate the light's transform wholesale
         self.shadow.camera:update({
-            position = props.position, -- allowed to be nil
-            rotation = props.rotation, -- allowed to be nil
+            position = self.position,
+            rotation = self.rotation,
             -- in all transform cases, viewMatrix needs to be updated.
             -- we already have the calculated matrix as self.viewMatrix, so
             -- just pass it in here
@@ -95,16 +94,11 @@ end
 
 --------------------------------------------------------------------------------
 
----@class PointLightShadow
----@field index number
----@field camera PerspectiveCamera
----@field shadowMapAft? ActorFrameTexture
-
 ---@class PointLight: Light
 ---@field index number
 ---@field position Vec3
 ---@field castShadows boolean
----@field shadow PointLightShadow
+---@field shadow StandardShadow
 local PointLight = class('PointLight', Light)
 
 ---@class (partial) PointLight.P: PointLight, Light.P
@@ -113,8 +107,7 @@ function PointLight:new(color, intensity, position)
     local o = Light.new(self, color, intensity, position)
     o.index = -1
     o.castShadows = false
-    o.shadow = {
-        index = -1,
+    o.shadow = shadows.StandardShadow:new{
         camera = cameras.PerspectiveCamera:new({
             position = o.position,
             fov = math.rad(90),
@@ -130,8 +123,8 @@ function PointLight:finalize(scene)
     if self.castShadows then
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index
-            ---@cast selfC PerspectiveCamera
-            ---@cast props PerspectiveCamera.P
+            ---@cast selfC PerspectiveCamera | OrthographicCamera
+            ---@cast props PerspectiveCamera.P | OrthographicCamera.P
             self:_dispatchToLightMats(
                 'pointLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }

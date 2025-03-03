@@ -228,8 +228,8 @@ mixins.LightsMixin = {
         end
 
         local shadowMap = nil
-        for _, shadow in ipairs(scene.lights.pointLightShadows) do
-            local idx = shadow.index
+        for i, shadow in ipairs(scene.lights.pointLightShadows) do
+            local idx = i - 1
             local camera = shadow.camera
             self:dispatchEvent(
                 'pointLightShadowMatrix',

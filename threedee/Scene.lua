@@ -2,22 +2,12 @@ local DepthMaterial = require 'threedee.materials.DepthMaterial'
 local actors = require 'threedee._actors'
 local class = require 'threedee.class'
 local Vec3 = require 'threedee.math.Vec3'
-
-local depthMat = DepthMaterial:new({
-    shader = actors.depthMatActor:GetShader() --[[@as RageShaderProgram]]
-})
-depthMat.alphaTest = 0.5
----@diagnostic disable-next-line: missing-parameter
-depthMat:compile()
-
-for _, shadowMapAft in ipairs(actors.shadowMapAfts) do
-    aft(shadowMapAft)
-end
+local shadows = require 'threedee.shadows'
 
 ---@class SceneLights
 ---@field ambientLights AmbientLight[]
 ---@field pointLights PointLight[]
----@field pointLightShadows PointLightShadow[]
+---@field pointLightShadows StandardShadow[]
 
 ---@class Scene
 ---@field aframe ActorFrame
@@ -157,7 +147,6 @@ function Scene:finalize()
         if light.castShadows then
             table.insert(self.lights.pointLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
-            light.shadow.index = light.index
         end
     end
 
@@ -174,36 +163,18 @@ function Scene:draw()
         for _, material in ipairs(self.materials) do
             material:onBeforeFirstDraw(self)
         end
-        depthMat:onBeforeFirstDraw(self)
+        shadows.standardDepthMat:onBeforeFirstDraw(self)
         self._firstDraw = false
     end
 
     if self.doShadows then
         -- do shadowmap depth pass
-
-        -- TODO: we probably don't actually need to replace the scene camera anymore?
-        local oldCamera = self.camera
-
+        self._isDrawingShadowMap = true
         for _, shadow in ipairs(self.lights.pointLightShadows) do
-            actors.depthInitQuad:Draw()
-            self.camera = shadow.camera
-            depthMat:dispatchEvent('cameraReplaced', { camera = self.camera })
-            depthMat:onFrameStart(self) -- set nearDist/farDist
-            DISPLAY:ShaderFuck(depthMat.shader)
-            self._isDrawingShadowMap = true
-            self._overrideMaterial = depthMat
-
-            self:drawActors()
-
-            self._isDrawingShadowMap = false
-            self._overrideMaterial = nil
-            DISPLAY:ClearShaderFuck()
-
-            shadow.shadowMapAft:Draw()
-            actors.clearBufferActor:Draw()
+            shadow:drawShadowMap(self)
         end
-
-        self.camera = oldCamera
+        self._isDrawingShadowMap = false
+        actors.clearBufferActor:Draw()
     end
 
     for _, material in ipairs(self.materials) do
