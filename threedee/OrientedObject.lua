@@ -42,6 +42,7 @@ function OrientedObject:update(props)
     self:onUpdate(props)
 end
 
+---@protected
 ---@param props OrientedObject.P
 function OrientedObject:_update(props)
     local viewMatRotationNeedsUpdate = self.rotation

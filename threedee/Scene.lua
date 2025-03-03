@@ -118,23 +118,14 @@ function Scene:finalize()
     -- assign onAfterSet functions to camera/lights, so that changes to
     -- camera/lights are sent to the materials that use them
 
-    local lightMaterials = self._lightMaterials
     local cameraMaterials = self._cameraMaterials
     local lights = self.lights
-
-    local function dispatchToLightMats(event, args)
-        for _, mat in ipairs(lightMaterials) do
-            mat:dispatchEvent(event, args)
-        end
-    end
 
     local function dispatchToCameraMats(event, args)
         for _, mat in ipairs(cameraMaterials) do
             mat:dispatchEvent(event, args)
         end
     end
-
-    -- CAMERA ---------------------------------------------
 
     self.camera.onUpdate = function(selfC, props)
         ---@cast selfC Camera
@@ -153,74 +144,20 @@ function Scene:finalize()
         end
     end
 
-    -- AMBIENT LIGHTS ---------------------------------------------
-
-    local function ambientLightOnUpdate(_, props)
-        ---@cast props AmbientLight.P
-        if props.color or props.intensity then
-            -- calculate new ambient light contribution
-            local lightColor = Vec3:new(0, 0, 0)
-            for _, ambLight in ipairs(lights.ambientLights) do
-                lightColor:add(ambLight.color:clone():scale(ambLight.intensity))
-            end
-            dispatchToLightMats('ambientLight', { value = lightColor })
-        end
-    end
-    for _, light in ipairs(lights.ambientLights) do
-        -- update ambient light uniforms on ambient light change
-        light.onUpdate = ambientLightOnUpdate
-    end
-
-    -- POINT LIGHTS ---------------------------------------------
-
-    local function pointLightOnUpdate(selfL, props)
-        ---@cast props PointLight.P
-        local idx = selfL.index
-        if props.color or props.intensity then
-            local col = selfL.color:clone():scale(selfL.intensity)
-            dispatchToLightMats(
-                'pointLightColor',
-                { index = idx, value = col }
-            )
-        end
-        if props.position then
-            dispatchToLightMats(
-                'pointLightPosition',
-                { index = idx, value = props.position }
-            )
-        end
-    end
-
     -- sort such that shadow-casting lights come first
     table.sort(lights.pointLights, function(a, b) return a.castShadows end)
+
+    for _, light in ipairs(lights.ambientLights) do
+        light:onFinalize(self)
+    end
+
     for i, light in ipairs(lights.pointLights) do
-        local idx = i - 1
-        light.index = idx
-        light.onUpdate = pointLightOnUpdate
+        light.index = i - 1
+        light:onFinalize(self)
         if light.castShadows then
             table.insert(self.lights.pointLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
-            light.shadow.index = idx
-            light.shadow.camera.onUpdate = function(selfC, props)
-                ---@cast selfC PerspectiveCamera
-                ---@cast props PerspectiveCamera.P
-                dispatchToLightMats(
-                    'pointLightShadowMatrix',
-                    { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
-                )
-                if props.nearDist then
-                    dispatchToLightMats(
-                        'pointLightShadowNearDist',
-                        { index = idx, value = selfC.nearDist }
-                    )
-                end
-                if props.farDist then
-                    dispatchToLightMats(
-                        'pointLightShadowFarDist',
-                        { index = idx, value = selfC.farDist }
-                    )
-                end
-            end
+            light.shadow.index = light.index
         end
     end
 
@@ -278,6 +215,14 @@ end
 function Scene:drawActors()
     for _, act in ipairs(self.actors) do
         act:Draw()
+    end
+end
+
+---@param event string
+---@param args table
+function Scene:_dispatchToLightMats(event, args)
+    for _, mat in ipairs(self._lightMaterials) do
+        mat:dispatchEvent(event, args)
     end
 end
 

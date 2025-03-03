@@ -11,6 +11,7 @@ local OrientedObject = require 'threedee.OrientedObject'
 ---@field color Vec3
 ---@field intensity number
 ---@field shadow? LightShadow
+---@field scene Scene
 local Light = class('Light', OrientedObject)
 
 ---@class (partial) Light.P: Light, OrientedObject.P
@@ -29,6 +30,14 @@ function Light.new(self, color, intensity, position, rotation)
     return light
 end
 
+---@param scene Scene
+function Light:onFinalize(scene)
+    self.scene = scene
+    -- only add the onUpdate method once the scene has been assigned, since
+    -- we need scene stuff to run these onUpdate
+    self.onUpdate = self._onUpdate
+end
+
 ---@param props Light.P
 function Light:_update(props)
     OrientedObject._update(self, props)
@@ -45,6 +54,19 @@ function Light:_update(props)
     end
 end
 
+---Once the scene is finalized, this function becomes the onUpdate method
+---for this light.
+---@param props Light.P
+function Light:_onUpdate(props)
+end
+
+---@protected
+---@param event string
+---@param args table
+function Light:_dispatchToLightMats(event, args)
+    self.scene:_dispatchToLightMats(event, args)
+end
+
 --------------------------------------------------------------------------------
 
 ---@class AmbientLight: Light
@@ -58,6 +80,18 @@ end
 
 ---@type fun(self: AmbientLight, props: AmbientLight.P)
 AmbientLight.update = Light.update
+
+---@param props AmbientLight.P
+function AmbientLight:_onUpdate(props)
+    if props.color or props.intensity then
+        -- calculate new ambient light contribution
+        local lightColor = Vec3:new(0, 0, 0)
+        for _, ambLight in ipairs(self.scene.lights.ambientLights) do
+            lightColor:add(ambLight.color:clone():scale(ambLight.intensity))
+        end
+        self:_dispatchToLightMats('ambientLight', { value = lightColor })
+    end
+end
 
 --------------------------------------------------------------------------------
 
@@ -91,8 +125,52 @@ function PointLight:new(color, intensity, position)
     return o
 end
 
+function PointLight:onFinalize(scene)
+    Light.onFinalize(self, scene)
+    if self.castShadows then
+        self.shadow.camera.onUpdate = function(selfC, props)
+            local idx = self.index
+            ---@cast selfC PerspectiveCamera
+            ---@cast props PerspectiveCamera.P
+            self:_dispatchToLightMats(
+                'pointLightShadowMatrix',
+                { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
+            )
+            if props.nearDist then
+                self:_dispatchToLightMats(
+                    'pointLightShadowNearDist',
+                    { index = idx, value = selfC.nearDist }
+                )
+            end
+            if props.farDist then
+                self:_dispatchToLightMats(
+                    'pointLightShadowFarDist',
+                    { index = idx, value = selfC.farDist }
+                )
+            end
+        end
+    end
+end
+
 ---@type fun(self: PointLight, props: PointLight.P)
 PointLight.update = Light.update
+
+---@param props PointLight.P
+function PointLight:_onUpdate(props)
+    if props.color or props.intensity then
+        local col = self.color:clone():scale(self.intensity)
+        self:_dispatchToLightMats(
+            'pointLightColor',
+            { index = self.index, value = col }
+        )
+    end
+    if props.position then
+        self:_dispatchToLightMats(
+            'pointLightPosition',
+            { index = self.index, value = self.position }
+        )
+    end
+end
 
 --------------------------------------------------------------------------------
 
