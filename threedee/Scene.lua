@@ -21,7 +21,7 @@ end
 
 ---@class Scene
 ---@field aframe ActorFrame
----@field camera PerspectiveCamera
+---@field camera Camera
 ---@field actors SceneActor[]
 ---@field materials Material[]
 ---@field doShadows boolean
@@ -34,7 +34,7 @@ end
 local Scene = class('Scene')
 
 ---@param aframe ActorFrame
----@param camera PerspectiveCamera
+---@param camera Camera
 ---@return Scene
 function Scene:new(aframe, camera)
     local o = {

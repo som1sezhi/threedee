@@ -16,6 +16,7 @@ local td = {
     Scene = require 'threedee.Scene',
 
     PerspectiveCamera = cameras.PerspectiveCamera,
+    OrthographicCamera = cameras.OrthographicCamera,
 
     MeshActor = sceneActors.MeshActor,
     NoteFieldProxy = sceneActors.NoteFieldProxy,

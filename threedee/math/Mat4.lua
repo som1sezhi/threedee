@@ -1,4 +1,8 @@
-local class = require "threedee.class"
+local class = require 'threedee.class'
+local Vec3 = require 'threedee.math.Vec3'
+
+local WORLD_UP = Vec3:new(0, -1, 0)
+
 ---@class Mat4
 ---@field [1] number
 ---@field [2] number
@@ -104,7 +108,7 @@ end
 ---@param a24 number
 ---@param a34 number
 ---@param a44 number
----@return Mat4
+---@return self
 function Mat4:set(
     a11, a21, a31, a41,
     a12, a22, a32, a42,
@@ -233,6 +237,109 @@ function Mat4:mulMatrices(matrixA, matrixB)
     self[15] = a31*b14 + a32*b24 + a33*b34 + a34*b44
     self[16] = a41*b14 + a42*b24 + a43*b34 + a44*b44
     return self
+end
+
+---Sets `self` to a view matrix for a camera at position `eye` looking at `at`
+---@param eye Vec3 camera position
+---@param at Vec3 target position
+---@param up? Vec3 up vector (remember -Y is up in NotITG)
+---@return self
+function Mat4:lookAt(eye, at, up)
+    up = up or WORLD_UP
+    -- we want the vectors in world space that the view space unit vectors 
+    -- (+X, +Y, +Z) correspond to.
+    -- from camera POV, +X points right, +Y points down, +Z points backwards
+    -- however, when dealing with the right-handed cross product,
+    -- we may treat +Y like a vector that points up instead.
+
+    -- vector pointing from target to camera (+Z in our view space)
+    local zaxis = (eye - at):normalize()
+    -- since up is -Y in NotITG's coord space, our up vector will behave more
+    -- like a down vector in the cross product's right-handed coord space.
+    -- (+Z) x (-Y) = (backwards) x (down) = (right) = (+X) as wanted
+    local xaxis = zaxis:clone():cross(up):normalize()
+    -- our desired +Y vector points down in NotITG space, but will behave more
+    -- like an up vector in the cross product's right-handed coord space.
+    -- (+Z) x (+X) = (backwards) x (right) = (up) = (+Y) as wanted
+    local yaxis = zaxis:clone():cross(xaxis)
+
+    return self:set(
+        xaxis[1], yaxis[1], zaxis[1], 0,
+        xaxis[2], yaxis[2], zaxis[2], 0,
+        xaxis[3], yaxis[3], zaxis[3], 0,
+        -xaxis:dot(eye), -yaxis:dot(eye), -zaxis:dot(eye), 1
+    )
+end
+
+---Sets `self` to a projection matrix for a general frustum.
+---All coordinates should be in view space.
+---@param l number left coordinate
+---@param r number right coordinate
+---@param b number bottom coordinate
+---@param t number top coordinate
+---@param zn number near plane distance
+---@param zf number far plane distance
+---@return self
+function Mat4:frustum(l, r, b, t, zn, zf)
+    local A = (r+l) / (r-l)
+    local B = (t+b) / (t-b)
+    local C = -(zf+zn) / (zf-zn)
+    local D = -(2*zf*zn) / (zf-zn)
+    return self:set(
+        2*zn/(r-l), 0, 0, 0,
+        0, 2*zn/(t-b), 0, 0,
+        A, B, C, -1,
+        0, 0, D, 0
+    )
+end
+
+---Sets `self` to a projection matrix for a symmetric frustum.
+---Equivalent to `frustum(-r, r, -t, t, zn, zf)`.
+---All coordinates should be in view space.
+---@param r number right coordinate
+---@param t number top coordinate
+---@param zn number near plane distance
+---@param zf number far plane distance
+---@return self
+function Mat4:symmetricFrustum(r, t, zn, zf)
+    return self:set(
+        zn/r, 0, 0,  0,
+        0, zn/t, 0,  0,
+        0, 0, -(zf+zn)/(zf-zn), -1,
+        0, 0, -2*zf*zn/(zf-zn), 0
+    )
+end
+
+---Sets `self` to a projection matrix for a perspective camera.
+---@param fovY number vertical FOV (radians)
+---@param aspectRatio number
+---@param near number
+---@param far number
+---@return self
+function Mat4:perspective(fovY, aspectRatio, near, far)
+    local tangent = math.tan(fovY / 2)
+    local bottom = near * tangent
+    local right = bottom * aspectRatio
+    -- top is negative here to flip the Y-axis from Y-down (NotITG convention)
+    -- to Y-up (OpenGL convention)
+    return self:symmetricFrustum(right, -bottom, near, far)
+end
+
+---Sets `self` to a projection matrix for an orthographic camera.
+---@param l number
+---@param r number
+---@param t number
+---@param b number
+---@param near number
+---@param far number
+---@return Mat4
+function Mat4:orthographic(l, r, t, b, near, far)
+    return self:set(
+        2/(r-l), 0, 0, 0,
+        0, 2/(t-b), 0, 0,
+        0, 0, -2/(far-near), 0,
+        -(r+l)/(r-l), -(t+b)/(t-b), -(far+near)/(far-near), 1
+    )
 end
 
 ---@param a Mat4
