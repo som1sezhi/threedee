@@ -76,7 +76,7 @@ end
 
 ---Called during Scene:finalize().
 ---@param scene Scene
-function SceneActor:onFinalize(scene)
+function SceneActor:finalize(scene)
     self.scene = scene
 end
 
@@ -129,10 +129,10 @@ function SceneActorFrame:add(sceneActor)
     end
 end
 
-function SceneActorFrame:onFinalize(scene)
-    SceneActor.onFinalize(self, scene)
+function SceneActorFrame:finalize(scene)
+    SceneActor.finalize(self, scene)
     for _, child in ipairs(self.children) do
-        child:onFinalize(scene)
+        child:finalize(scene)
     end
 end
 
@@ -183,8 +183,8 @@ function MeshActor:new(actor, material)
     return o
 end
 
-function MeshActor:onFinalize(scene)
-    ActorWithMaterial.onFinalize(self, scene)
+function MeshActor:finalize(scene)
+    ActorWithMaterial.finalize(self, scene)
     self.actor:SetShader(self.material.shader)
 end
 
@@ -218,8 +218,8 @@ function NoteFieldProxy:new(actor, material, player)
     return o
 end
 
-function NoteFieldProxy:onFinalize(scene)
-    ActorWithMaterial.onFinalize(self, scene)
+function NoteFieldProxy:finalize(scene)
+    ActorWithMaterial.finalize(self, scene)
     local shader = self.material.shader
     -- probably don't need to do this since we use shaderfuck but eh
     self.player:SetArrowShader(shader)

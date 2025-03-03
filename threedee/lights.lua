@@ -31,7 +31,7 @@ function Light.new(self, color, intensity, position, rotation)
 end
 
 ---@param scene Scene
-function Light:onFinalize(scene)
+function Light:finalize(scene)
     self.scene = scene
     -- only add the onUpdate method once the scene has been assigned, since
     -- we need scene stuff to run these onUpdate
@@ -125,8 +125,8 @@ function PointLight:new(color, intensity, position)
     return o
 end
 
-function PointLight:onFinalize(scene)
-    Light.onFinalize(self, scene)
+function PointLight:finalize(scene)
+    Light.finalize(self, scene)
     if self.castShadows then
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index

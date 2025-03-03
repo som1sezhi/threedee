@@ -148,12 +148,12 @@ function Scene:finalize()
     table.sort(lights.pointLights, function(a, b) return a.castShadows end)
 
     for _, light in ipairs(lights.ambientLights) do
-        light:onFinalize(self)
+        light:finalize(self)
     end
 
     for i, light in ipairs(lights.pointLights) do
         light.index = i - 1
-        light:onFinalize(self)
+        light:finalize(self)
         if light.castShadows then
             table.insert(self.lights.pointLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
@@ -165,7 +165,7 @@ function Scene:finalize()
         material:compile(self)
     end
     for _, act in ipairs(self.actors) do
-        act:onFinalize(self)
+        act:finalize(self)
     end
 end
 
