@@ -65,7 +65,7 @@ end
 
 ---Set properties of the material, and updates the corresponding shader uniforms.
 ---@param props Material
-function Material:set(props)
+function Material:update(props)
     for k, v in pairs(props) do
         self[k] = v
         local changeFunc = self.changeFuncs[k]

@@ -19,6 +19,6 @@ UVMaterial.fragSource = sources.frag
 UVMaterial.new = Material.new
 
 ---@type fun(self: UVMaterial, initProps?: UVMaterial.P)
-UVMaterial.set = Material.set
+UVMaterial.update = Material.update
 
 return UVMaterial

@@ -20,7 +20,7 @@ DepthMaterial.fragSource = sources.frag
 DepthMaterial.new = Material.new
 
 ---@type fun(self: DepthMaterial, initProps?: DepthMaterial.P)
-DepthMaterial.set = Material.set
+DepthMaterial.update = Material.update
 
 function DepthMaterial:onFrameStart(scene)
     Material.onFrameStart(self, scene)

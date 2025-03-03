@@ -21,6 +21,6 @@ UnlitMaterial.fragSource = sources.frag
 UnlitMaterial.new = Material.new
 
 ---@type fun(self: UnlitMaterial, initProps?: UnlitMaterial.P)
-UnlitMaterial.set = Material.set
+UnlitMaterial.update = Material.update
 
 return UnlitMaterial

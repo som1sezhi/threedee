@@ -32,11 +32,11 @@ function PerspectiveCamera:new(attrs)
 end
 
 ---@type fun(self: PerspectiveCamera, props: PerspectiveCamera.P)
-PerspectiveCamera.set = OrientedObject.set
+PerspectiveCamera.update = OrientedObject.update
 
 ---@param props PerspectiveCamera.P
-function PerspectiveCamera:_set(props)
-    OrientedObject._set(self, props)
+function PerspectiveCamera:_update(props)
+    OrientedObject._update(self, props)
     if props.fov or props.aspectRatio or props.nearDist or props.farDist then
         self:_updateProjMatrix()
         self._projMatWasUpdated = true
@@ -77,11 +77,11 @@ function OrthographicCamera:new(attrs)
 end
 
 ---@type fun(self: OrthographicCamera, props: OrthographicCamera.P)
-OrthographicCamera.set = OrientedObject.set
+OrthographicCamera.update = OrientedObject.update
 
 ---@param props OrthographicCamera.P
-function OrthographicCamera:_set(props)
-    OrientedObject._set(self, props)
+function OrthographicCamera:_update(props)
+    OrientedObject._update(self, props)
     if props.left or props.right or props.top or props.bottom or props.nearDist or props.farDist then
         self:_updateProjMatrix()
         self._projMatWasUpdated = true

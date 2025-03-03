@@ -24,8 +24,8 @@ function OrientedObject.new(self, position, rotation)
         rotation = rotation or Quat:new(),
         viewMatrix = Mat4:new(),
     }, self)
-    -- calculate viewMatrix via set method
-    o:set({
+    -- calculate viewMatrix via update method
+    o:update({
         position = o.position,
         rotation = o.rotation
     })
@@ -34,16 +34,16 @@ end
 
 local tempMat3 = Mat3:new()
 
----Sets the object's position and/or rotation. If you already calculated the
+---Updates the object's position and/or rotation. If you already calculated the
 ---viewMatrix elsewhere, you can pass that in too to avoid re-calculating it here.
 ---@param props OrientedObject.P
-function OrientedObject:set(props)
-    self:_set(props)
-    self:onAfterSet(props)
+function OrientedObject:update(props)
+    self:_update(props)
+    self:onUpdate(props)
 end
 
 ---@param props OrientedObject.P
-function OrientedObject:_set(props)
+function OrientedObject:_update(props)
     local viewMatRotationNeedsUpdate = self.rotation
     local viewMatTranslationNeedsUpdate = self.position or self.rotation
 
@@ -71,16 +71,16 @@ end
 ---@param targetPos Vec3
 ---@param up? Vec3
 function OrientedObject:lookAt(eyePos, targetPos, up)
-    self:set({
+    self:update({
         position = eyePos,
         rotation = self.rotation:lookRotation(targetPos - eyePos, up)
     })
 end
 
----Override this if you want to run some additional code whenever :set() is called,
+---Override this if you want to run some additional code whenever :update() is called,
 ---e.g. for dispatching events to materials that need the updated values.
 ---@param props OrientedObject.P
-function OrientedObject:onAfterSet(props)
+function OrientedObject:onUpdate(props)
 end
 
 return OrientedObject

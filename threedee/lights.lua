@@ -30,11 +30,11 @@ function Light.new(self, color, intensity, position, rotation)
 end
 
 ---@param props Light.P
-function Light:_set(props)
-    OrientedObject._set(self, props)
+function Light:_update(props)
+    OrientedObject._update(self, props)
     -- propagate transform changes to the shadow camera
     if self.shadow and (props.position or props.rotation or props.viewMatrix) then
-        self.shadow.camera:set({
+        self.shadow.camera:update({
             position = props.position, -- allowed to be nil
             rotation = props.rotation, -- allowed to be nil
             -- in all transform cases, viewMatrix needs to be updated.
@@ -57,7 +57,7 @@ function AmbientLight:new(color, intensity)
 end
 
 ---@type fun(self: AmbientLight, props: AmbientLight.P)
-AmbientLight.set = Light.set
+AmbientLight.update = Light.update
 
 --------------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ function PointLight:new(color, intensity, position)
 end
 
 ---@type fun(self: PointLight, props: PointLight.P)
-PointLight.set = Light.set
+PointLight.update = Light.update
 
 --------------------------------------------------------------------------------
 

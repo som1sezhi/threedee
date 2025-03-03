@@ -33,7 +33,7 @@ function PhongMaterial:new(initProps)
 end
 
 ---@type fun(self: PhongMaterial, initProps?: PhongMaterial.P)
-PhongMaterial.set = Material.set
+PhongMaterial.update = Material.update
 
 PhongMaterial.changeFuncs.specular = cfs.vec3ChangeFunc('specular')
 PhongMaterial.changeFuncs.emissive = cfs.vec3ChangeFunc('emissive')

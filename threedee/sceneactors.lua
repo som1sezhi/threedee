@@ -157,7 +157,7 @@ end
 ---@param overrideMaterial DepthMaterial
 function ActorWithMaterial:_prepareOverrideMaterialAlpha(overrideMaterial)
     local mat = self.material
-    overrideMaterial:set({
+    overrideMaterial:update({
         ---@diagnostic disable-next-line: undefined-field
         alphaMap = mat.colorMap or mat.alphaMap or false,
         ---@diagnostic disable-next-line: undefined-field

@@ -136,7 +136,7 @@ function Scene:finalize()
         end
     end
 
-    self.camera.onAfterSet = function(selfC, props)
+    self.camera.onUpdate = function(selfC, props)
         ---@cast selfC Camera
         ---@cast props PerspectiveCamera.P
         if props.position then
@@ -153,7 +153,7 @@ function Scene:finalize()
         end
     end
 
-    local function ambientLightOnAfterSet(_, props)
+    local function ambientLightOnUpdate(_, props)
         ---@cast props AmbientLight.P
         if props.color or props.intensity then
             -- calculate new ambient light contribution
@@ -164,13 +164,12 @@ function Scene:finalize()
             dispatchToLightMats('ambientLight', { value = lightColor })
         end
     end
-
     for _, light in ipairs(lights.ambientLights) do
         -- update ambient light uniforms on ambient light change
-        light.onAfterSet = ambientLightOnAfterSet
+        light.onUpdate = ambientLightOnUpdate
     end
 
-    local function pointLightOnAfterSet(selfL, props)
+    local function pointLightOnUpdate(selfL, props)
         ---@cast props PointLight.P
         local idx = selfL.index
         if props.color or props.intensity then
@@ -187,15 +186,14 @@ function Scene:finalize()
             )
         end
     end
-
     for _, light in ipairs(lights.pointLights) do
-        light.onAfterSet = pointLightOnAfterSet
+        light.onUpdate = pointLightOnUpdate
         if light.castShadows then
             local idx = #self.lights.pointLightShadows
             table.insert(self.lights.pointLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
             light.shadow.index = idx
-            light.shadow.camera.onAfterSet = function(selfC, props)
+            light.shadow.camera.onUpdate = function(selfC, props)
                 ---@cast selfC PerspectiveCamera
                 ---@cast props PerspectiveCamera.P
                 dispatchToLightMats(

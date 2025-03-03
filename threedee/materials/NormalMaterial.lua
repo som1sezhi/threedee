@@ -20,6 +20,6 @@ NormalMaterial.fragSource = sources.frag
 NormalMaterial.new = Material.new
 
 ---@type fun(self: NormalMaterial, initProps?: NormalMaterial.P)
-NormalMaterial.set = Material.set
+NormalMaterial.update = Material.update
 
 return NormalMaterial
