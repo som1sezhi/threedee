@@ -87,6 +87,57 @@ end
 
 --------------------------------------------------------------------------------
 
+---A SceneActor that wraps an ActorFrame.
+---@class SceneActorFrame: SceneActor
+---@field actor ActorFrame
+---@field children SceneActor[]
+local SceneActorFrame = class('SceneActorFrame', SceneActor)
+
+---@param aframe ActorFrame | SceneActorFrame
+---@return SceneActorFrame
+function SceneActorFrame:new(aframe)
+    local o = SceneActor.new(self, aframe)
+    o.children = {}
+
+    -- use a drawfunction to draw the children, in order to take advantage
+    -- of ActorFrame matrix stack pushing/popping behavior to transform the
+    -- children correctly.
+    -- after this, a user can set their own custom draw function if they wish to,
+    -- using the regular :SetDrawFunction method
+    aframe:SetDrawFunction(function()
+        for _, child in ipairs(o.children) do
+            child:Draw()
+        end
+    end)
+
+    return o
+end
+
+---Add a child or children to this SceneActorFrame. The children
+---should all wrap an actual child of the underlying ActorFrame.
+---@param sceneActor SceneActor | SceneActor[]
+function SceneActorFrame:add(sceneActor)
+    local len = #sceneActor
+    if len > 0 then
+        -- assume this is a table of sceneactors
+        for i = 1, len do
+            table.insert(self.children, sceneActor[i])
+        end
+    else
+        -- assume this is just one sceneactor
+        table.insert(self.children, sceneActor)
+    end
+end
+
+function SceneActorFrame:onFinalize(scene)
+    SceneActor.onFinalize(self, scene)
+    for _, child in ipairs(self.children) do
+        child:onFinalize(scene)
+    end
+end
+
+--------------------------------------------------------------------------------
+
 ---A SceneActor associated with a material.
 ---@class ActorWithMaterial: SceneActor
 ---@field material Material
@@ -194,6 +245,7 @@ end
 
 return {
     SceneActor = SceneActor,
+    SceneActorFrame = SceneActorFrame,
     MeshActor = MeshActor,
     NoteFieldProxy = NoteFieldProxy
 }

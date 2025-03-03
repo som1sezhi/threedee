@@ -66,13 +66,12 @@ function Scene:new(aframe, camera)
     return o
 end
 
----@param sceneActor SceneActor
-function Scene:add(sceneActor)
-    table.insert(self.actors, sceneActor)
-    ---@diagnostic disable-next-line: undefined-field
+---@private
+function Scene:_addMaterialsFromSceneActor(sceneActor)
     if sceneActor.material then
-        ---@cast sceneActor (ActorWithMaterial | NoteFieldProxy)
+        -- this is an ActorWithMaterial
         local material = sceneActor.material
+        -- don't add material if already in material tables
         local shouldAddMaterial = true
         for _, mat in ipairs(self.materials) do
             if mat == material then
@@ -80,6 +79,7 @@ function Scene:add(sceneActor)
                 break
             end
         end
+        -- add to material tables
         if shouldAddMaterial then
             table.insert(self.materials, material)
             if material.useCamera then
@@ -89,7 +89,18 @@ function Scene:add(sceneActor)
                 table.insert(self._lightMaterials, material)
             end
         end
+    elseif sceneActor.children then
+        -- this is a SceneActorFrame, add children's materials
+        for _, child in ipairs(sceneActor.children) do
+            self:_addMaterialsFromSceneActor(child)
+        end
     end
+end
+
+---@param sceneActor SceneActor
+function Scene:add(sceneActor)
+    table.insert(self.actors, sceneActor)
+    self:_addMaterialsFromSceneActor(sceneActor)
 end
 
 ---@param light Light

@@ -18,6 +18,7 @@ local td = {
     PerspectiveCamera = cameras.PerspectiveCamera,
     OrthographicCamera = cameras.OrthographicCamera,
 
+    SceneActorFrame = sceneActors.SceneActorFrame,
     MeshActor = sceneActors.MeshActor,
     NoteFieldProxy = sceneActors.NoteFieldProxy,
 
