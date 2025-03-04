@@ -26,9 +26,9 @@ PhongMaterial.fragSource = sources.frag
 ---@return PhongMaterial
 function PhongMaterial:new(initProps)
     local o = Material.new(self, initProps)
-    o.specular = Vec3:new(1, 1, 1)
-    o.emissive = Vec3:new(0, 0, 0)
-    o.shininess = 30
+    o.specular = o.specular or Vec3:new(1, 1, 1)
+    o.emissive = o.emissive or Vec3:new(0, 0, 0)
+    o.shininess = o.shininess or 32
     return o
 end
 
