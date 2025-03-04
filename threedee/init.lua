@@ -31,6 +31,7 @@ local td = {
     AmbientLight = lights.AmbientLight,
     PointLight = lights.PointLight,
     DirLight = lights.DirLight,
+    SpotLight = lights.SpotLight,
 }
 
 return td

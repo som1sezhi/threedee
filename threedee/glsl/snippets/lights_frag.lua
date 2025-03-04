@@ -61,6 +61,41 @@ return {
             );
         }
     #endif
+
+    #if defined(NUM_SPOT_LIGHTS) && NUM_SPOT_LIGHTS > 0
+        for (int i = 0; i < NUM_SPOT_LIGHTS; i++) {
+            SpotLight light = spotLights[i];
+            vec3 incomingLight = light.color;
+            vec3 lightDir = light.position - vWorldPos;
+            float lightDist = length(lightDir);
+            lightDir /= lightDist;
+            float attenuation = 1. / (1. + 0.000002 * lightDist * lightDist);
+        
+            float theta = dot(lightDir, -normalize(light.direction));
+            float epsilon = light.cosInnerAngle - light.cosAngle;
+            attenuation *= clamp((theta - light.cosAngle) / epsilon, 0.0, 1.0);
+
+            #if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
+                if (i < NUM_SPOT_LIGHT_SHADOWS && attenuation > 0.0 && doShadows) {
+                    vec3 projCoord = calcShadowProjCoord(
+                        spotLightSpacePos[i], spotLightShadows[i]
+                    );
+                    float shadow = calcShadow(
+                        projCoord,
+                        spotLightShadowMaps[i],
+                        spotLightShadows[i]
+                    );
+                    attenuation *= (1.0 - shadow);
+                }
+            #endif
+
+            incomingLight *= attenuation;
+
+            outgoingLight += getOutgoingLight(
+                incomingLight, lightDir, viewDir, normal, material
+            );
+        }
+    #endif
 ]],
     deps = {
         'lights_frag_defs',

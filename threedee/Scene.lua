@@ -1,7 +1,5 @@
-local DepthMaterial = require 'threedee.materials.DepthMaterial'
 local actors = require 'threedee._actors'
 local class = require 'threedee.class'
-local Vec3 = require 'threedee.math.Vec3'
 local shadows = require 'threedee.shadows'
 
 ---@class SceneLights
@@ -10,6 +8,8 @@ local shadows = require 'threedee.shadows'
 ---@field pointLightShadows StandardShadow[]
 ---@field dirLights DirLight[]
 ---@field dirLightShadows StandardShadow[]
+---@field spotLights SpotLight[]
+---@field spotLightShadows StandardShadow[]
 
 ---@class Scene
 ---@field aframe ActorFrame
@@ -43,6 +43,8 @@ function Scene:new(aframe, camera)
             pointLightShadows = {},
             dirLights = {},
             dirLightShadows = {},
+            spotLights = {},
+            spotLightShadows = {},
         },
 
 
@@ -107,6 +109,8 @@ function Scene:addLight(light)
         table.insert(self.lights.pointLights, light)
     elseif name == 'DirLight' then
         table.insert(self.lights.dirLights, light)
+    elseif name == 'SpotLight' then
+        table.insert(self.lights.spotLights, light)
     end
 end
 
@@ -144,6 +148,7 @@ function Scene:finalize()
     local function sortFunc(a, b) return a.castShadows end
     table.sort(lights.pointLights, sortFunc)
     table.sort(lights.dirLights, sortFunc)
+    table.sort(lights.spotLights, sortFunc)
 
     for _, light in ipairs(lights.ambientLights) do
         light:finalize(self)
@@ -161,6 +166,14 @@ function Scene:finalize()
         light:finalize(self)
         if light.castShadows then
             table.insert(self.lights.dirLightShadows, light.shadow)
+            light.shadow.shadowMapAft = actors.getShadowMapAft()
+        end
+    end
+    for i, light in ipairs(lights.spotLights) do
+        light.index = i - 1
+        light:finalize(self)
+        if light.castShadows then
+            table.insert(self.lights.spotLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
         end
     end
@@ -189,6 +202,9 @@ function Scene:draw()
             shadow:drawShadowMap(self)
         end
         for _, shadow in ipairs(self.lights.dirLightShadows) do
+            shadow:drawShadowMap(self)
+        end
+        for _, shadow in ipairs(self.lights.spotLightShadows) do
             shadow:drawShadowMap(self)
         end
         self._isDrawingShadowMap = false

@@ -230,6 +230,8 @@ mixins.LightsMixin = {
         self.shader:define('NUM_POINT_LIGHT_SHADOWS', tostring(#scene.lights.pointLightShadows))
         self.shader:define('NUM_DIR_LIGHTS', tostring(#scene.lights.dirLights))
         self.shader:define('NUM_DIR_LIGHT_SHADOWS', tostring(#scene.lights.dirLightShadows))
+        self.shader:define('NUM_SPOT_LIGHTS', tostring(#scene.lights.spotLights))
+        self.shader:define('NUM_SPOT_LIGHT_SHADOWS', tostring(#scene.lights.spotLightShadows))
     end,
 
     onBeforeFirstDraw = function(self, scene)
@@ -251,6 +253,18 @@ mixins.LightsMixin = {
             local facing = Vec3:new(0, 0, -1):applyQuat(light.rotation)
             self:dispatchEvent('dirLightProp', { idx, 'vec3', 'color', col })
             self:dispatchEvent('dirLightProp', { idx, 'vec3', 'direction', facing })
+        end
+        for _, light in ipairs(scene.lights.spotLights) do
+            local idx = light.index
+            local col = light.color:clone():scale(light.intensity)
+            local facing = Vec3:new(0, 0, -1):applyQuat(light.rotation)
+            local cosAngle = math.cos(light.angle)
+            local cosInnerAngle = math.cos(light.angle * (1 - light.penumbra))
+            self:dispatchEvent('spotLightProp', { idx, 'vec3', 'color', col })
+            self:dispatchEvent('spotLightProp', { idx, 'vec3', 'position', light.position })
+            self:dispatchEvent('spotLightProp', { idx, 'vec3', 'direction', facing })
+            self:dispatchEvent('spotLightProp', { idx, 'float', 'cosAngle', cosAngle })
+            self:dispatchEvent('spotLightProp', { idx, 'float', 'cosInnerAngle', cosInnerAngle })
         end
 
         local shadowMap = nil
@@ -275,6 +289,17 @@ mixins.LightsMixin = {
             self:dispatchEvent('dirLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
             shadowMap = shadow.shadowMapAft:GetTexture()
             self.shader:uniformTexture('dirLightShadowMaps[' .. idx .. ']', shadowMap)
+        end
+        for i, shadow in ipairs(scene.lights.spotLightShadows) do
+            local idx = i - 1
+            local camera = shadow.camera
+            self:dispatchEvent('spotLightShadowMatrix',
+                { index = idx, value = camera.projMatrix * camera.viewMatrix }
+            )
+            self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
+            self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
+            shadowMap = shadow.shadowMapAft:GetTexture()
+            self.shader:uniformTexture('spotLightShadowMaps[' .. idx .. ']', shadowMap)
         end
 
         if shadowMap ~= nil then
@@ -306,7 +331,13 @@ mixins.LightsMixin = {
             local uname = 'dirLightMatrices[' .. args.index .. ']'
             self.shader:uniformMatrix4fv(uname, args.value)
         end,
-        dirLightShadowProp = lightUniformEventHandler('dirLightShadows')
+        dirLightShadowProp = lightUniformEventHandler('dirLightShadows'),
+        spotLightProp = lightUniformEventHandler('spotLights'),
+        spotLightShadowMatrix = function(self, args)
+            local uname = 'spotLightMatrices[' .. args.index .. ']'
+            self.shader:uniformMatrix4fv(uname, args.value)
+        end,
+        spotLightShadowProp = lightUniformEventHandler('spotLightShadows')
     }
 }
 

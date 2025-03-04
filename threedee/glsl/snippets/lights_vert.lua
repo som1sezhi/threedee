@@ -10,6 +10,11 @@ return {
             dirLightSpacePos[i] = dirLightMatrices[i] * worldPos;
         }
     #endif
+    #if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
+        for (int i = 0; i < NUM_SPOT_LIGHT_SHADOWS; i++) {
+            spotLightSpacePos[i] = spotLightMatrices[i] * worldPos;
+        }
+    #endif
 ]],
     deps = {'lights_vert_defs', 'position_vert'}
 }

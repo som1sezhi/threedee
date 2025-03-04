@@ -4,6 +4,8 @@ local cameras = require 'threedee.cameras'
 local OrientedObject = require 'threedee.OrientedObject'
 local shadows = require 'threedee.shadows'
 
+local cos = math.cos
+
 ---Base class for all lights
 ---@class Light: OrientedObject
 ---@field color Vec3
@@ -237,8 +239,120 @@ end
 
 --------------------------------------------------------------------------------
 
+---@class SpotLight: Light
+---@field index number
+---@field castShadows boolean
+---@field shadow StandardShadow
+---@field angle number
+---@field penumbra number
+local SpotLight = class('SpotLight', Light)
+
+---@class (partial) SpotLight.P: SpotLight, Light.P
+
+---@param color? Vec3
+---@param intensity? number
+---@param position? Vec3
+---@param rotation? Quat
+---@param angle? number
+---@param penumbra? number
+---@return SpotLight
+function SpotLight:new(color, intensity, position, rotation, angle, penumbra)
+    local o = Light.new(self, color, intensity, position, rotation)
+    o.index = -1
+    o.castShadows = false
+    o.angle = angle or math.rad(45)
+    o.penumbra = penumbra or 0
+    o.shadow = shadows.StandardShadow:new {
+        camera = cameras.PerspectiveCamera:new({
+            position = o.position,
+            fov = o.angle * 2,
+            nearDist = 100,
+            farDist = 3000,
+        })
+    }
+    return o
+end
+
+function SpotLight:finalize(scene)
+    Light.finalize(self, scene)
+    if self.castShadows then
+        self.shadow.camera.onUpdate = function(selfC, props)
+            local idx = self.index
+            ---@cast selfC PerspectiveCamera | OrthographicCamera
+            ---@cast props PerspectiveCamera.P | OrthographicCamera.P
+            self:_dispatchToLightMats(
+                'spotLightShadowMatrix',
+                { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
+            )
+            if props.nearDist then
+                self:_dispatchToLightMats(
+                    'spotLightShadowProp',
+                    { idx, 'float', 'nearDist', selfC.nearDist }
+                )
+            end
+            if props.farDist then
+                self:_dispatchToLightMats(
+                    'spotLightShadowProp',
+                    { idx, 'float', 'farDist', selfC.farDist }
+                )
+            end
+        end
+    end
+end
+
+---@type fun(self: SpotLight, props: SpotLight.P)
+SpotLight.update = Light.update
+
+---@param props SpotLight.P
+function SpotLight:_update(props)
+    Light._update(self, props)
+    if props.angle then
+        self.shadow.camera:update({
+            fov = self.angle * 2
+        })
+    end
+end
+
+---@param props SpotLight.P
+function SpotLight:_onUpdate(props)
+    if props.color or props.intensity then
+        local col = self.color:clone():scale(self.intensity)
+        self:_dispatchToLightMats('spotLightProp',
+            { self.index, 'vec3', 'color', col }
+        )
+    end
+    if props.position then
+        self:_dispatchToLightMats('spotLightProp',
+            { self.index, 'vec3', 'position', self.position}
+        )
+    end
+    if props.rotation then
+        local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
+        self:_dispatchToLightMats('spotLightProp',
+            { self.index, 'vec3', 'direction', facing }
+        )
+    end
+    if props.angle then
+        local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
+        self:_dispatchToLightMats('spotLightProp',
+            { self.index, 'float', 'cosAngle', cos(self.angle) }
+        )
+        self:_dispatchToLightMats('spotLightProp',
+            { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
+        )
+    elseif props.penumbra then
+        local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
+        self:_dispatchToLightMats('spotLightProp',
+            { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
+        )
+    end
+end
+
+--------------------------------------------------------------------------------
+
 return {
     AmbientLight = AmbientLight,
     PointLight = PointLight,
     DirLight = DirLight,
+    SpotLight = SpotLight,
 }
