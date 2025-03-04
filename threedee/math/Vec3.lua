@@ -146,6 +146,19 @@ function Vec3:cross(other)
     )
 end
 
+---Applies a quaternion rotation to `self`.
+---@param quat Quat
+---@return self
+function Vec3:applyQuat(quat)
+    -- https://gamedev.stackexchange.com/a/50545
+    local u = Vec3:new(quat[1], quat[2], quat[3])
+    local s = quat[4]
+    local uCrossV = u:clone():cross(self)
+    local uDotV = u:dot(self)
+    local uDotU = u:lengthSquared()
+    return self:scale(s*s - uDotU):add(u:scale(2 * uDotV)):add(uCrossV:scale(2 * s))
+end
+
 ---@param a Vec3
 ---@param b Vec3
 ---@return Vec3

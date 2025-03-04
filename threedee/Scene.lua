@@ -8,6 +8,8 @@ local shadows = require 'threedee.shadows'
 ---@field ambientLights AmbientLight[]
 ---@field pointLights PointLight[]
 ---@field pointLightShadows StandardShadow[]
+---@field dirLights DirLight[]
+---@field dirLightShadows StandardShadow[]
 
 ---@class Scene
 ---@field aframe ActorFrame
@@ -39,6 +41,8 @@ function Scene:new(aframe, camera)
             ambientLights = {},
             pointLights = {},
             pointLightShadows = {},
+            dirLights = {},
+            dirLightShadows = {},
         },
 
 
@@ -101,6 +105,8 @@ function Scene:addLight(light)
         table.insert(self.lights.ambientLights, light)
     elseif name == 'PointLight' then
         table.insert(self.lights.pointLights, light)
+    elseif name == 'DirLight' then
+        table.insert(self.lights.dirLights, light)
     end
 end
 
@@ -135,17 +141,26 @@ function Scene:finalize()
     end
 
     -- sort such that shadow-casting lights come first
-    table.sort(lights.pointLights, function(a, b) return a.castShadows end)
+    local function sortFunc(a, b) return a.castShadows end
+    table.sort(lights.pointLights, sortFunc)
+    table.sort(lights.dirLights, sortFunc)
 
     for _, light in ipairs(lights.ambientLights) do
         light:finalize(self)
     end
-
     for i, light in ipairs(lights.pointLights) do
         light.index = i - 1
         light:finalize(self)
         if light.castShadows then
             table.insert(self.lights.pointLightShadows, light.shadow)
+            light.shadow.shadowMapAft = actors.getShadowMapAft()
+        end
+    end
+    for i, light in ipairs(lights.dirLights) do
+        light.index = i - 1
+        light:finalize(self)
+        if light.castShadows then
+            table.insert(self.lights.dirLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
         end
     end
@@ -171,6 +186,9 @@ function Scene:draw()
         -- do shadowmap depth pass
         self._isDrawingShadowMap = true
         for _, shadow in ipairs(self.lights.pointLightShadows) do
+            shadow:drawShadowMap(self)
+        end
+        for _, shadow in ipairs(self.lights.dirLightShadows) do
             shadow:drawShadowMap(self)
         end
         self._isDrawingShadowMap = false

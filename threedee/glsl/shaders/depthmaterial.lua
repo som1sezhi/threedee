@@ -2,13 +2,16 @@ local preprocess = require 'threedee.glsl.preprocess'
 
 local vert = [[#version 120
 #line 2 1004
+// for vertex color alpha
 #define USE_VERTEX_COLORS
+
+#include <utils>
 #include <position_vert_defs>
 #include <texcoord_vert_defs>
 #include <color_vert_defs>
 varying float depth;
 
-// uniform float nearDist;
+uniform float nearDist;
 uniform float farDist;
 
 void main() {
@@ -20,8 +23,7 @@ void main() {
 	// which calls glDepthRange() with a range of size 0.95 (e.g. with a bias of 0,
 	// the depth range will be [0.05, 1]). Thus we can't trust gl_FragCoord.z to
 	// hold the "true" depth value of the fragment, so we must calculate it ourselves.
-    depth = -viewPos.z / farDist;
-    // depth = invlerp(nearDist, farDist, depth);
+    depth = invlerp(nearDist, farDist, -viewPos.z);
 }
 ]]
 

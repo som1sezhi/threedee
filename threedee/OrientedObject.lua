@@ -55,7 +55,7 @@ function OrientedObject:_update(props)
     if not props.viewMatrix then
         -- update rotation part of view matrix
         if viewMatRotationNeedsUpdate then
-            tempMat3:setFromQuat(self.rotation)
+            tempMat3:setFromQuat(self.rotation:clone():conj())
             self.viewMatrix:setUpperMat3(tempMat3)
         end
         -- update translation part of view matrix (based on rotation part)

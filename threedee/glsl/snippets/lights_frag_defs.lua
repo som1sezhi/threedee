@@ -22,6 +22,20 @@ struct ShadowInfo {
     uniform sampler2D pointLightShadowMaps[NUM_POINT_LIGHT_SHADOWS];
     uniform ShadowInfo pointLightShadows[NUM_POINT_LIGHT_SHADOWS];
 #endif
+
+#if defined(NUM_DIR_LIGHTS) && NUM_DIR_LIGHTS > 0
+    struct DirLight {
+        vec3 color;
+        vec3 direction;
+    };
+    uniform DirLight dirLights[NUM_DIR_LIGHTS];
+#endif
+#if defined(NUM_DIR_LIGHT_SHADOWS) && NUM_DIR_LIGHT_SHADOWS > 0
+    varying vec4 dirLightSpacePos[NUM_DIR_LIGHT_SHADOWS];
+
+    uniform sampler2D dirLightShadowMaps[NUM_DIR_LIGHT_SHADOWS];
+    uniform ShadowInfo dirLightShadows[NUM_DIR_LIGHT_SHADOWS];
+#endif
 ]],
     prevStageDeps = {'lights_vert'}
 }

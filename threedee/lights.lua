@@ -96,7 +96,6 @@ end
 
 ---@class PointLight: Light
 ---@field index number
----@field position Vec3
 ---@field castShadows boolean
 ---@field shadow StandardShadow
 local PointLight = class('PointLight', Light)
@@ -131,14 +130,14 @@ function PointLight:finalize(scene)
             )
             if props.nearDist then
                 self:_dispatchToLightMats(
-                    'pointLightShadowNearDist',
-                    { index = idx, value = selfC.nearDist }
+                    'pointLightShadowProp',
+                    { idx, 'float', 'nearDist', selfC.nearDist }
                 )
             end
             if props.farDist then
                 self:_dispatchToLightMats(
-                    'pointLightShadowFarDist',
-                    { index = idx, value = selfC.farDist }
+                    'pointLightShadowProp',
+                    { idx, 'float', 'farDist', selfC.farDist }
                 )
             end
         end
@@ -153,14 +152,85 @@ function PointLight:_onUpdate(props)
     if props.color or props.intensity then
         local col = self.color:clone():scale(self.intensity)
         self:_dispatchToLightMats(
-            'pointLightColor',
-            { index = self.index, value = col }
+            'pointLightProp',
+            { self.index, 'vec3', 'color', col }
         )
     end
     if props.position then
         self:_dispatchToLightMats(
-            'pointLightPosition',
-            { index = self.index, value = self.position }
+            'pointLightProp',
+            { self.index, 'vec3', 'position', self.position }
+        )
+    end
+end
+
+--------------------------------------------------------------------------------
+
+---@class DirLight: Light
+---@field index number
+---@field castShadows boolean
+---@field shadow StandardShadow
+local DirLight = class('DirLight', Light)
+
+---@class (partial) DirLight.P: DirLight, Light.P
+
+function DirLight:new(color, intensity)
+    local o = Light.new(self, color, intensity)
+    o.index = -1
+    o.castShadows = false
+    o.shadow = shadows.StandardShadow:new {
+        camera = cameras.OrthographicCamera:new({
+            nearDist = 100,
+            farDist = 3000,
+        })
+    }
+    return o
+end
+
+function DirLight:finalize(scene)
+    Light.finalize(self, scene)
+    if self.castShadows then
+        self.shadow.camera.onUpdate = function(selfC, props)
+            local idx = self.index
+            ---@cast selfC PerspectiveCamera | OrthographicCamera
+            ---@cast props PerspectiveCamera.P | OrthographicCamera.P
+            self:_dispatchToLightMats(
+                'dirLightShadowMatrix',
+                { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
+            )
+            if props.nearDist then
+                self:_dispatchToLightMats(
+                    'dirLightShadowProp',
+                    { idx, 'float', 'nearDist', selfC.nearDist }
+                )
+            end
+            if props.farDist then
+                self:_dispatchToLightMats(
+                    'dirLightShadowProp',
+                    { idx, 'float', 'farDist', selfC.farDist }
+                )
+            end
+        end
+    end
+end
+
+---@type fun(self: DirLight, props: DirLight.P)
+DirLight.update = Light.update
+
+---@param props DirLight.P
+function DirLight:_onUpdate(props)
+    if props.color or props.intensity then
+        local col = self.color:clone():scale(self.intensity)
+        self:_dispatchToLightMats(
+            'dirLightProp',
+            { self.index, 'vec3', 'color', col }
+        )
+    end
+    if props.rotation then
+        local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
+        self:_dispatchToLightMats(
+            'dirLightProp',
+            { self.index, 'vec3', 'direction', facing }
         )
     end
 end
@@ -169,5 +239,6 @@ end
 
 return {
     AmbientLight = AmbientLight,
-    PointLight = PointLight
+    PointLight = PointLight,
+    DirLight = DirLight,
 }

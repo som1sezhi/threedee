@@ -29,7 +29,8 @@ local td = {
     UVMaterial = require 'threedee.materials.UVMaterial',
 
     AmbientLight = lights.AmbientLight,
-    PointLight = lights.PointLight
+    PointLight = lights.PointLight,
+    DirLight = lights.DirLight,
 }
 
 return td

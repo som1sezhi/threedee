@@ -10,12 +10,29 @@ vec2 img2texShadowMap( vec2 v ) {
     return (floor(v * shadowMapImageSize) + 0.5) / shadowMapTextureSize;
 }
 
+vec3 calcShadowProjCoord(vec4 fragLightSpacePos, ShadowInfo shadowInfo) {
+    vec3 projCoord = fragLightSpacePos.xyz / fragLightSpacePos.w;
+    projCoord.z = invlerp(
+        shadowInfo.nearDist,
+        shadowInfo.farDist,
+        linearizeDepth(projCoord.z, shadowInfo.nearDist, shadowInfo.farDist)
+    );
+    return projCoord;
+}
+
+vec3 calcShadowProjCoordOrtho(vec4 fragLightSpacePos) {
+    vec3 projCoord = fragLightSpacePos.xyz / fragLightSpacePos.w;
+    projCoord.z = projCoord.z * 0.5 + 0.5;
+    return projCoord;
+}
+
 #define OLD
 #ifdef OLD
-float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowInfo) {
-    vec3 projCoord = fragLightSpacePos.xyz / fragLightSpacePos.w;
-
-    if (projCoord.z < -1.0 || 1.0 < projCoord.z)
+// projCoord.xy = XY coords of fragment position projected in light space
+// projCoord.z = depth of current fragment in [0, 1]
+float calcShadow(vec3 projCoord, sampler2D shadowMap, ShadowInfo shadowInfo) {
+    float currentDepth = projCoord.z;
+    if (currentDepth < 0.0 || 1.0 < currentDepth)
         return 0.0;
 
     vec2 texelSize = 1. / shadowMapTextureSize;
@@ -26,9 +43,7 @@ float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowI
     if (any(lessThan(baseUV, corner1)) || any(greaterThan(baseUV, corner2)))
         return 0.0;
 
-    float currentDepth = linearizeDepth(projCoord.z, shadowInfo.nearDist, shadowInfo.farDist) / shadowInfo.farDist;
     // currentDepth -= max(0.01 * (1.0 - dot(nrm, light)), 0.002);
-    //currentDepth = invlerp(shadowInfo.nearDist, shadowInfo.farDist, currentDepth);
     currentDepth -= 0.003;
 
     float shadow = 0.0;
@@ -58,9 +73,9 @@ float rand(vec2 co){
   return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowInfo) {
-    vec3 projCoord = fragLightSpacePos.xyz / fragLightSpacePos.w;
+    float currentDepth = projCoord.z;
 
-    if (projCoord.z < -1.0 || 1.0 < projCoord.z)
+    if (currentDepth < 0.0 || 1.0 < currentDepth)
         return 0.0;
 
     vec2 texelSize = 1. / shadowMapTextureSize;
@@ -76,7 +91,6 @@ float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowI
     if (any(lessThan(baseUV, corner1)) || any(greaterThan(baseUV, corner2)))
         return 0.0;
 
-    float currentDepth = linearizeDepth(projCoord.z, shadowInfo.nearDist, shadowInfo.farDist) / shadowInfo.farDist;
     // currentDepth -= max(0.01 * (1.0 - dot(nrm, light)), 0.002);
     //currentDepth = invlerp(shadowInfo.nearDist, shadowInfo.farDist, currentDepth);
     currentDepth -= 0.003;
@@ -128,5 +142,5 @@ float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowI
 }
 #endif
 ]],
-    deps = {'packing', 'lights_frag_defs'}
+    deps = {'packing', 'lights_frag_defs', 'utils'}
 }

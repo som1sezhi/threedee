@@ -239,7 +239,8 @@ function Mat4:mulMatrices(matrixA, matrixB)
     return self
 end
 
----Sets `self` to a view matrix for a camera at position `eye` looking at `at`
+---Sets `self` to a view matrix for a camera at position `eye` looking at `at`.
+---Be aware that this gives a view matrix, not a world matrix for the camera/any other object.
 ---@param eye Vec3 camera position
 ---@param at Vec3 target position
 ---@param up? Vec3 up vector (remember -Y is up in NotITG)

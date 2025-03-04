@@ -18,8 +18,11 @@ return {
 
             #if defined(NUM_POINT_LIGHT_SHADOWS) && NUM_POINT_LIGHT_SHADOWS > 0
                 if (i < NUM_POINT_LIGHT_SHADOWS && doShadows) {
+                    vec3 projCoord = calcShadowProjCoord(
+                        pointLightSpacePos[i], pointLightShadows[i]
+                    );
                     float shadow = calcShadow(
-                        pointLightSpacePos[i],
+                        projCoord,
                         pointLightShadowMaps[i],
                         pointLightShadows[i]
                     );
@@ -28,6 +31,30 @@ return {
             #endif
 
             incomingLight *= attenuation;
+
+            outgoingLight += getOutgoingLight(
+                incomingLight, lightDir, viewDir, normal, material
+            );
+        }
+    #endif
+
+    #if defined(NUM_DIR_LIGHTS) && NUM_DIR_LIGHTS > 0
+        for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
+            DirLight light = dirLights[i];
+            vec3 incomingLight = light.color;
+            vec3 lightDir = -normalize(light.direction);
+
+            #if defined(NUM_DIR_LIGHT_SHADOWS) && NUM_DIR_LIGHT_SHADOWS > 0
+                if (i < NUM_DIR_LIGHT_SHADOWS && doShadows) {
+                    vec3 projCoord = calcShadowProjCoordOrtho(dirLightSpacePos[i]);
+                    float shadow = calcShadow(
+                        projCoord,
+                        dirLightShadowMaps[i],
+                        dirLightShadows[i]
+                    );
+                    incomingLight *= (1.0 - shadow);
+                }
+            #endif
 
             outgoingLight += getOutgoingLight(
                 incomingLight, lightDir, viewDir, normal, material

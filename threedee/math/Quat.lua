@@ -209,9 +209,9 @@ function Quat:lookRotation(forwards, up)
     local yaxis = zaxis:clone():cross(xaxis)
 
     matrix:set(
-        xaxis[1], yaxis[1], zaxis[1],
-        xaxis[2], yaxis[2], zaxis[2],
-        xaxis[3], yaxis[3], zaxis[3]
+        xaxis[1], xaxis[2], xaxis[3],
+        yaxis[1], yaxis[2], yaxis[3],
+        zaxis[1], zaxis[2], zaxis[3]
     )
     self:setFromMat3(matrix)
     return self
