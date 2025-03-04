@@ -232,6 +232,14 @@ mixins.LightsMixin = {
         self.shader:define('NUM_DIR_LIGHT_SHADOWS', tostring(#scene.lights.dirLightShadows))
         self.shader:define('NUM_SPOT_LIGHTS', tostring(#scene.lights.spotLights))
         self.shader:define('NUM_SPOT_LIGHT_SHADOWS', tostring(#scene.lights.spotLightShadows))
+
+        local colorMapCount = 0
+        for i, light in ipairs(scene.lights.spotLights) do
+            if not (light.colorMap and light.castShadows) then break end
+            colorMapCount = i
+        end
+        self.shader:define('NUM_SPOT_LIGHT_COLOR_MAPS', tostring(colorMapCount))
+        
     end,
 
     onBeforeFirstDraw = function(self, scene)
@@ -265,6 +273,9 @@ mixins.LightsMixin = {
             self:dispatchEvent('spotLightProp', { idx, 'vec3', 'direction', facing })
             self:dispatchEvent('spotLightProp', { idx, 'float', 'cosAngle', cosAngle })
             self:dispatchEvent('spotLightProp', { idx, 'float', 'cosInnerAngle', cosInnerAngle })
+            if light.castShadows and light.colorMap then
+                self:dispatchEvent('spotLightColorMap', { index = idx, value = light.colorMap })
+            end
         end
 
         local shadowMap = nil
@@ -333,11 +344,15 @@ mixins.LightsMixin = {
         end,
         dirLightShadowProp = lightUniformEventHandler('dirLightShadows'),
         spotLightProp = lightUniformEventHandler('spotLights'),
+        spotLightColorMap = function(self, args)
+            local uname = 'spotLightColorMaps[' .. args.index .. ']'
+            self.shader:uniformTexture(uname, args.value)
+        end,
         spotLightShadowMatrix = function(self, args)
             local uname = 'spotLightMatrices[' .. args.index .. ']'
             self.shader:uniformMatrix4fv(uname, args.value)
         end,
-        spotLightShadowProp = lightUniformEventHandler('spotLightShadows')
+        spotLightShadowProp = lightUniformEventHandler('spotLightShadows'),
     }
 }
 

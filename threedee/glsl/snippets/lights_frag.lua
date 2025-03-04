@@ -80,12 +80,20 @@ return {
                     vec3 projCoord = calcShadowProjCoord(
                         spotLightSpacePos[i], spotLightShadows[i]
                     );
-                    float shadow = calcShadow(
-                        projCoord,
-                        spotLightShadowMaps[i],
-                        spotLightShadows[i]
-                    );
-                    attenuation *= (1.0 - shadow);
+                    if (doShadows) {
+                        float shadow = calcShadow(
+                            projCoord,
+                            spotLightShadowMaps[i],
+                            spotLightShadows[i]
+                        );
+                        attenuation *= (1.0 - shadow);
+                    }
+                    #if defined(NUM_SPOT_LIGHT_COLOR_MAPS) && NUM_SPOT_LIGHT_COLOR_MAPS > 0
+                        if (i < NUM_SPOT_LIGHT_COLOR_MAPS) {
+                            //incomingLight *= vec3(fract((projCoord.xy * 0.5 + 0.5) * 3.0), 0.0);
+                            incomingLight *= texture2D(spotLightColorMaps[i], projCoord.xy * 0.5 + 0.5).rgb;
+                        }
+                    #endif
                 }
             #endif
 

@@ -52,6 +52,10 @@ struct ShadowInfo {
 
     uniform sampler2D spotLightShadowMaps[NUM_SPOT_LIGHT_SHADOWS];
     uniform ShadowInfo spotLightShadows[NUM_SPOT_LIGHT_SHADOWS];
+    
+    #if defined(NUM_SPOT_LIGHT_COLOR_MAPS) && NUM_SPOT_LIGHT_COLOR_MAPS > 0
+        uniform sampler2D spotLightColorMaps[NUM_SPOT_LIGHT_COLOR_MAPS];
+    #endif
 #endif
 ]],
     prevStageDeps = {'lights_vert'}

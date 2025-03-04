@@ -148,7 +148,13 @@ function Scene:finalize()
     local function sortFunc(a, b) return a.castShadows end
     table.sort(lights.pointLights, sortFunc)
     table.sort(lights.dirLights, sortFunc)
-    table.sort(lights.spotLights, sortFunc)
+    -- sort spotlights with colormaps first
+    table.sort(lights.spotLights, function(a, b)
+        if a.castShadows == b.castShadows then
+            return a.colorMap and true or false
+        end
+        return a.castShadows
+    end)
 
     for _, light in ipairs(lights.ambientLights) do
         light:finalize(self)

@@ -245,6 +245,7 @@ end
 ---@field shadow StandardShadow
 ---@field angle number
 ---@field penumbra number
+---@field colorMap RageTexture|false
 local SpotLight = class('SpotLight', Light)
 
 ---@class (partial) SpotLight.P: SpotLight, Light.P
@@ -266,10 +267,12 @@ function SpotLight:new(color, intensity, position, rotation, angle, penumbra)
         camera = cameras.PerspectiveCamera:new({
             position = o.position,
             fov = o.angle * 2,
+            aspectRatio = 1,
             nearDist = 100,
             farDist = 3000,
         })
     }
+    o.colorMap = false
     return o
 end
 
@@ -344,6 +347,11 @@ function SpotLight:_onUpdate(props)
         local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
         self:_dispatchToLightMats('spotLightProp',
             { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
+        )
+    end
+    if props.colorMap then
+        self:_dispatchToLightMats('spotLightColorMap',
+            { index = self.index, value = props.colorMap }
         )
     end
 end

@@ -177,10 +177,12 @@ end
 ---@return self
 function Quat:mulQuats(q1, q2)
     -- http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
-    self[1] =  q1[1] * q2[4] + q1[2] * q2[3] - q1[3] * q2[2] + q1[4] * q2[1]
-    self[2] = -q1[1] * q2[3] + q1[2] * q2[4] + q1[3] * q2[1] + q1[4] * q2[2]
-    self[3] =  q1[1] * q2[2] - q1[2] * q2[1] + q1[3] * q2[4] + q1[4] * q2[3]
-    self[4] = -q1[1] * q2[1] - q1[2] * q2[2] - q1[3] * q2[3] + q1[4] * q2[4]
+    local q1x, q1y, q1z, q1w = q1[1], q1[2], q1[3], q1[4]
+    local q2x, q2y, q2z, q2w = q2[1], q2[2], q2[3], q2[4]
+    self[1] = q1x * q2w + q1w * q2x + q1y * q2z - q1z * q2y
+    self[2] = q1y * q2w + q1w * q2y + q1z * q2x - q1x * q2z
+    self[3] = q1z * q2w + q1w * q2z + q1x * q2y - q1y * q2x
+    self[4] = q1w * q2w - q1x * q2x - q1y * q2y - q1z * q2z
     return self
 end
 
@@ -252,6 +254,10 @@ end
 
 function Quat.__mul(a, b)
     return a:clone():mul(b)
+end
+
+function Quat:__tostring()
+    return string.format('Quat(%f,%f,%f,%f)', self[1], self[2], self[3], self[4])
 end
 
 return Quat
