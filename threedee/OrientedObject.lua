@@ -20,8 +20,8 @@ local OrientedObject = class('OrientedObject')
 ---@return O
 function OrientedObject.new(self, position, rotation)
     local o = setmetatable({
-        position = position or Vec3:new(0, 0, 0),
-        rotation = rotation or Quat:new(),
+        position = position and position:clone() or Vec3:new(0, 0, 0),
+        rotation = rotation and rotation:clone() or Quat:new(),
         viewMatrix = Mat4:new(),
     }, self)
     -- calculate viewMatrix via update method

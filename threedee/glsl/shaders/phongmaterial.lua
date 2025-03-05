@@ -24,6 +24,7 @@ local frag = [[#version 120
 #include <utils>
 #include <packing>
 #include <colorspaces>
+#include <mapping>
 #include <position_frag_defs>
 #include <color_frag_defs>
 #include <alpha_frag_defs>
@@ -34,6 +35,7 @@ local frag = [[#version 120
 #include <lights_frag_defs>
 #include <phong_frag_defs>
 #include <shadowmap_frag_defs>
+#include <envmap_frag_defs>
 
 uniform vec3 emissive;
 
@@ -44,6 +46,7 @@ void main() {
     #include <alphadiscard_frag>
     #include <phong_frag>
     #include <lights_frag>
+    #include <envmap_frag>
 
     outgoingLight += emissive;
     outgoingLight = linear2Srgb(outgoingLight);

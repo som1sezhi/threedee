@@ -29,6 +29,15 @@ end
 
 ---@param name string
 ---@return ChangeFunc
+function cfs.mat3ChangeFunc(name)
+    return function(self, newVal)
+        newVal = newVal or self[name]
+        self.shader:uniformMatrix3fv(name, newVal)
+    end
+end
+
+---@param name string
+---@return ChangeFunc
 function cfs.optTextureChangeFunc(name)
     return function(self, newVal)
         newVal = newVal or self[name]

@@ -1,4 +1,5 @@
 local Vec3 = require 'threedee.math.Vec3'
+local Mat3 = require 'threedee.math.Mat3'
 local cfs = require 'threedee.materials.changeFuncs'
 
 local typeToUniformFunc = {
@@ -201,6 +202,58 @@ mixins.NormalMapMixin = {
 
 ---------------------------------------------------------------------
 
+---@class WithEnvMap: Material
+---@field envMap EnvMap|false
+---@field envMapType 'reflection'|'refraction'
+---@field envMapStrength number
+---@field envMapCombine 'multiply'|'add'|'mix'
+---@field envMapRotation Mat3
+---@field refractionRatio number
+
+---Handles environment maps.
+---
+---Defined fields: `envMap: EnvMap|false`, `envMapType: 'reflection'|'refraction'`, `envMapStrength: number`, `envMapCombine: 'multiply'|'add'|'mix'`, `envMapRotation: Mat3`, `refractionRatio: number`
+---
+---Associated snippets: `<envmap_*>`
+mixins.EnvMapMixin = {
+    init = function(self)
+        ---@cast self WithEnvMap
+        self.envMap = self.envMap or false
+        self.envMapType = self.envMapType or 'reflection'
+        self.envMapStrength = self.envMapStrength or 1
+        self.envMapCombine = self.envMapCombine or 'multiply'
+        self.envMapRotation = self.envMapRotation or Mat3:new()
+        self.refractionRatio = self.refractionRatio or 0.98
+    end,
+
+    setDefines = function(self)
+        ---@cast self WithEnvMap
+        self:_defineFlag('USE_ENV_MAP', self.envMap)
+        if self.envMap then
+            self.shader:define('ENV_MAP_MAPPING_'..string.upper(self.envMap.mapping))
+            self.shader:define('ENV_MAP_FORMAT_'..string.upper(self.envMap.colorFormat))
+        end
+        self.shader:define('ENV_MAP_TYPE_'..string.upper(self.envMapType))
+        self.shader:define('ENV_MAP_COMBINE_'..string.upper(self.envMapCombine))
+    end,
+
+    changeFuncs = {
+        envMap = function(self, newVal)
+            ---@cast self WithEnvMap
+            local envMap = newVal or self.envMap
+            -- only support changing the texture, not its associated attributes
+            if envMap then
+                self.shader:uniformTexture('envMap', envMap.texture)
+            end
+        end,
+        envMapStrength = cfs.floatChangeFunc('envMapStrength'),
+        envMapRotation = cfs.mat3ChangeFunc('envMapRotation'),
+        refractionRatio = cfs.floatChangeFunc('refractionRatio')
+    }
+}
+
+---------------------------------------------------------------------
+
 local function lightUniformEventHandler(uniformArrayName)
     local template = uniformArrayName .. '[%d].%s'
     return function(self, args)
@@ -239,7 +292,7 @@ mixins.LightsMixin = {
             colorMapCount = i
         end
         self.shader:define('NUM_SPOT_LIGHT_COLOR_MAPS', tostring(colorMapCount))
-        
+
     end,
 
     onBeforeFirstDraw = function(self, scene)

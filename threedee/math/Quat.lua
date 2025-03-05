@@ -60,6 +60,8 @@ function Quat:set(x, y, z, w)
 end
 
 ---Sets `self` to the rotation specified by `axis` and `angle`.
+---Note that positive angles go clockwise when viewing in the positive direction
+---of the axis (e.g. looking rightwards for the X axis).
 ---@param axis Vec3 axis of rotation (unit vector)
 ---@param angle number angle (radians)
 ---@return self

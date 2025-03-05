@@ -3,6 +3,26 @@ local sceneActors = require 'threedee.sceneactors'
 local cameras = require 'threedee.cameras'
 local lights = require 'threedee.lights'
 
+---@class EnvMap
+---@field texture RageTexture
+---@field mapping 'sphere'|'equirect'
+---@field colorFormat 'rgb'
+---@field isEnvMap true
+
+---@class (partial) EnvMapArgs: EnvMap
+---@field texture RageTexture
+
+---@param args EnvMapArgs
+---@return EnvMap
+local function envMap(args)
+    return {
+        texture = args.texture,
+        mapping = args.mapping or 'equirect',
+        colorFormat = args.colorFormat or 'rgb',
+        isEnvMap = true
+    }
+end
+
 local td = {
     math = math,
     Vec3 = math.Vec3,
@@ -32,6 +52,8 @@ local td = {
     PointLight = lights.PointLight,
     DirLight = lights.DirLight,
     SpotLight = lights.SpotLight,
+
+    envMap = envMap,
 }
 
 return td

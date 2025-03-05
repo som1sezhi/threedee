@@ -5,7 +5,7 @@ local mixins = require 'threedee.materials.mixins'
 local materialClass = require 'threedee.materials.materialClass'
 local cfs = require 'threedee.materials.changeFuncs'
 
----@class PhongMaterial: Material, WithCamera, WithColor, WithLights, WithAlpha, WithNormalMap
+---@class PhongMaterial: Material, WithCamera, WithColor, WithLights, WithAlpha, WithNormalMap, WithEnvMap
 ---@field specular Vec3 specular color
 ---@field emissive Vec3 emissive/ambient color
 ---@field shininess number sharpness of highlight
@@ -15,6 +15,7 @@ local PhongMaterial = materialClass('PhongMaterial', Material, {
     mixins.LightsMixin,
     mixins.NormalMapMixin,
     mixins.AlphaMixin,
+    mixins.EnvMapMixin
 })
 
 ---@class (partial) PhongMaterial.P: PhongMaterial
