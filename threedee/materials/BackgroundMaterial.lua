@@ -8,7 +8,7 @@ local Vec3 = require 'threedee.math.Vec3'
 local cfs = require 'threedee.materials.changeFuncs'
 
 ---@class BackgroundMaterial: Material, WithCamera
----@field color Vec3|false
+---@field color Vec3
 ---@field colorMap RageTexture|false
 ---@field envMap EnvMap|false
 ---@field envMapRotation Mat3
@@ -33,7 +33,8 @@ function BackgroundMaterial:new(initProps)
     return o
 end
 
-function BackgroundMaterial:setDefines()
+function BackgroundMaterial:setDefines(scene)
+    Material.setDefines(self, scene)
     self:_defineFlag('USE_COLOR_MAP', self.colorMap)
     self:_defineFlag('USE_ENV_MAP', self.envMap)
     if self.envMap then
