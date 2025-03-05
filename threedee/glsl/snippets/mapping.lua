@@ -20,7 +20,7 @@ vec2 getSphereMapUV(vec3 dir) {
     return dir.xy / m + 0.5;
 }
 
-const vec2 invAtan = vec2(0.1591, 0.3183);
+const vec2 invAtan = vec2(0.5 / PI, 1.0 / PI);
 vec2 getEquirectMapUV(vec3 dir) {
     // same NOTE applies here too
     vec2 uv = vec2(atan(dir.z, dir.x), asin(dir.y));
@@ -39,5 +39,5 @@ vec2 getEquirectMapUV(vec3 dir) {
     #endif
 #endif
 ]],
-    deps = {}
+    deps = {'utils'}
 }

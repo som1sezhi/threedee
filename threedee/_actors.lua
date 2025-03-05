@@ -16,9 +16,8 @@ local actors = {
     ---@type Actor
     clearBufferActor = _td_clearBufferActor,
 
-    ---TODO: remove?
-    ---@type Sprite
-    whiteSpr = _td_whiteSpr
+    ---@type Model
+    cubeModel = _td_cubeModel
 }
 
 for _, shadowMapAft in ipairs(actors.shadowMapAfts) do

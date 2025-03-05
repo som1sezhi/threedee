@@ -47,6 +47,7 @@ local td = {
     NormalMaterial = require 'threedee.materials.NormalMaterial',
     UnlitMaterial = require 'threedee.materials.UnlitMaterial',
     UVMaterial = require 'threedee.materials.UVMaterial',
+    BackgroundMaterial = require 'threedee.materials.BackgroundMaterial',
 
     AmbientLight = lights.AmbientLight,
     PointLight = lights.PointLight,

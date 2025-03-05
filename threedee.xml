@@ -23,5 +23,5 @@ end)"><children>
     
     <Layer Name="_td_depthInitQuad" InitCommand="clearzbuffer,1;diffuse,1,1,1,1;xywh,xero.scx,xero.scy,xero.sw,xero.sh" Type="Quad" />
     <Layer Name="_td_clearBufferActor" InitCommand="clearzbuffer,1;clearbuffer,1" Type="Quad" />
-    <Layer Name="_td_whiteSpr" File="threedee/white.png" />
+    <Layer Name="_td_cubeModel" File="threedee/cube.obj" InitCommand="cullmode,none;basezoomy,-1" />
 </children></Layer>

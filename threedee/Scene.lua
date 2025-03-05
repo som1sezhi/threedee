@@ -1,6 +1,11 @@
 local actors = require 'threedee._actors'
 local class = require 'threedee.class'
 local shadows = require 'threedee.shadows'
+local BackgroundMaterial = require 'threedee.materials.BackgroundMaterial'
+local Vec3 = require 'threedee.math.Vec3'
+local Mat3 = require 'threedee.math.Mat3'
+local sceneActors = require 'threedee.sceneactors'
+local PhongMaterial = require 'threedee.materials.PhongMaterial'
 
 ---@class SceneLights
 ---@field ambientLights AmbientLight[]
@@ -16,27 +21,31 @@ local shadows = require 'threedee.shadows'
 ---@field camera Camera
 ---@field actors SceneActor[]
 ---@field materials Material[]
----@field doShadows boolean
 ---@field lights SceneLights
+---@field doShadows boolean
+---@field background Vec3|RageTexture|EnvMap
+---@field backgroundRotation Mat3
+---@field backgroundIntensity number
 ---@field _isDrawingShadowMap boolean
 ---@field _overrideMaterial? Material
 ---@field private _firstDraw boolean
 ---@field private _lightMaterials Material[]
 ---@field private _cameraMaterials Material[]
+---@field private _backgroundMaterial BackgroundMaterial
+---@field private _backgroundActor MeshActor
 local Scene = class('Scene')
 
 ---@param aframe ActorFrame
 ---@param camera Camera
 ---@return Scene
 function Scene:new(aframe, camera)
+    local bgMat = BackgroundMaterial:new()
     local o = {
         aframe = aframe,
         camera = camera,
 
         actors = {},
         materials = {},
-
-        doShadows = false,
         lights = {
             ambientLights = {},
             pointLights = {},
@@ -47,11 +56,17 @@ function Scene:new(aframe, camera)
             spotLightShadows = {},
         },
 
+        doShadows = false,
+        background = Vec3:new(0, 0, 0),
+        backgroundRotation = Mat3:new(),
+        backgroundIntensity = 1,
 
         _isDrawingShadowMap = false,
         _firstDraw = true,
         _lightMaterials = {},
-        _cameraMaterials = {}
+        _cameraMaterials = {bgMat},
+        _backgroundMaterial = bgMat,
+        _backgroundActor = sceneActors.MeshActor:new(actors.cubeModel, bgMat)
     }
     o = setmetatable(o, self)
 
@@ -190,6 +205,23 @@ function Scene:finalize()
     for _, act in ipairs(self.actors) do
         act:finalize(self)
     end
+
+    local bg = self.background
+    ---@diagnostic disable-next-line: undefined-field
+    if bg.__name == 'Vec3' then
+        ---@cast bg Vec3
+        self._backgroundMaterial.color = bg
+    elseif bg.isEnvMap then
+        ---@cast bg EnvMap
+        self._backgroundMaterial.envMap = bg
+    else
+        ---@cast bg RageTexture
+        self._backgroundMaterial.colorMap = bg
+    end
+    self._backgroundMaterial.envMapRotation = self.backgroundRotation
+    self._backgroundMaterial.intensity = self.backgroundIntensity
+    self._backgroundMaterial:compile(self)
+    self._backgroundActor:finalize(self)
 end
 
 function Scene:draw()
@@ -198,6 +230,7 @@ function Scene:draw()
             material:onBeforeFirstDraw(self)
         end
         shadows.standardDepthMat:onBeforeFirstDraw(self)
+        self._backgroundMaterial:onBeforeFirstDraw(self)
         self._firstDraw = false
     end
 
@@ -220,12 +253,52 @@ function Scene:draw()
     for _, material in ipairs(self.materials) do
         material:onFrameStart(self)
     end
+    self._backgroundMaterial:onFrameStart(self)
     self:drawActors()
+    self._backgroundActor:Draw()
 end
 
 function Scene:drawActors()
     for _, act in ipairs(self.actors) do
         act:Draw()
+    end
+end
+
+---@class Scene.Update
+---@field doShadows? boolean
+---@field background? Vec3|RageTexture|EnvMap
+---@field backgroundRotation? Mat3
+---@field backgroundIntensity? number
+
+---@param props Scene.Update
+function Scene:update(props)
+    for k, v in pairs(props) do
+        self[k] = v
+    end
+
+    local bg = props.background
+    if bg then
+        ---@diagnostic disable-next-line: undefined-field
+        if bg.__name == 'Vec3' then
+            ---@cast bg Vec3
+            self._backgroundMaterial:update{ color = bg }
+        elseif bg.isEnvMap then
+            ---@cast bg EnvMap
+            self._backgroundMaterial:update{ envMap = bg }
+        else
+            ---@cast bg RageTexture
+            self._backgroundMaterial:update{ colorMap = bg }
+        end
+    end
+    if props.backgroundRotation then
+        self._backgroundMaterial:update{
+            envMapRotation = self.backgroundRotation
+        }
+    end
+    if props.backgroundIntensity then
+        self._backgroundMaterial:update{
+            intensity = self.backgroundIntensity
+        }
     end
 end
 

@@ -1,5 +1,7 @@
 return {
     snippet = [[
+#define PI 3.1415926538
+
 float modf_(float f, out float i) {
     i = floor(f);
     return fract(f);
@@ -7,6 +9,10 @@ float modf_(float f, out float i) {
 
 float invlerp(float a, float b, float v) {
     return (v - a) / (b - a);
+}
+
+vec2 img2tex(vec2 uv, vec2 textureSize, vec2 imageSize) {
+    return uv / textureSize * imageSize;
 }
 
 // http://byteblacksmith.com/improvements-to-the-canonical-one-liner-glsl-rand-for-opengl-es-2-0/

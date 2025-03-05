@@ -66,6 +66,7 @@ end
 ---@param angle number angle (radians)
 ---@return self
 function Quat:setFromAxisAngle(axis, angle)
+    axis = axis:clone():normalize()
     local s = sin(angle / 2)
     self[1] = axis[1] * s
     self[2] = axis[2] * s

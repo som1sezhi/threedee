@@ -237,4 +237,17 @@ function Mat3.__unm(a)
     return a:clone():neg()
 end
 
+function Mat3:__tostring()
+    return string.format(
+        'Mat3 [\n'..
+        '  %f, %f, %f\n'..
+        '  %f, %f, %f\n'..
+        '  %f, %f, %f\n'..
+        ']',
+        self[1], self[4], self[7],
+        self[2], self[5], self[8],
+        self[3], self[6], self[9]
+    )
+end
+
 return Mat3
