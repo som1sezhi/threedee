@@ -71,7 +71,7 @@ function AmbientLight:linkWithScene(scene)
             for _, ambLight in ipairs(scene.lights.ambientLights) do
                 lightColor:add(ambLight.color:clone():scale(ambLight.intensity))
             end
-            scene:_dispatchToLightMats('ambientLight', { value = lightColor })
+            scene.pub:sendMessage('ambientLight', { value = lightColor })
         end
     end
 end
@@ -109,13 +109,13 @@ function PointLight:linkWithScene(scene)
     self.onUpdate = function(self, props)
         if props.color or props.intensity then
             local col = self.color:clone():scale(self.intensity)
-            scene:_dispatchToLightMats(
+            scene.pub:sendMessage(
                 'pointLightProp',
                 { self.index, 'vec3', 'color', col }
             )
         end
         if props.position then
-            scene:_dispatchToLightMats(
+            scene.pub:sendMessage(
                 'pointLightProp',
                 { self.index, 'vec3', 'position', self.position }
             )
@@ -128,7 +128,7 @@ function PointLight:linkWithScene(scene)
         self.shadow.onUpdate = function(selfS, props)
             local idx = self.index
             if props.bias then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'pointLightShadowProp',
                     { idx, 'float', 'bias', selfS.bias }
                 )
@@ -139,18 +139,18 @@ function PointLight:linkWithScene(scene)
         ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index
-            scene:_dispatchToLightMats(
+            scene.pub:sendMessage(
                 'pointLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
             )
             if props.nearDist then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'pointLightShadowProp',
                     { idx, 'float', 'nearDist', selfC.nearDist }
                 )
             end
             if props.farDist then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'pointLightShadowProp',
                     { idx, 'float', 'farDist', selfC.farDist }
                 )
@@ -190,14 +190,14 @@ function DirLight:linkWithScene(scene)
     self.onUpdate = function(self, props)
         if props.color or props.intensity then
             local col = self.color:clone():scale(self.intensity)
-            scene:_dispatchToLightMats(
+            scene.pub:sendMessage(
                 'dirLightProp',
                 { self.index, 'vec3', 'color', col }
             )
         end
         if props.rotation then
             local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
-            scene:_dispatchToLightMats(
+            scene.pub:sendMessage(
                 'dirLightProp',
                 { self.index, 'vec3', 'direction', facing }
             )
@@ -210,7 +210,7 @@ function DirLight:linkWithScene(scene)
         self.shadow.onUpdate = function(selfS, props)
             local idx = self.index
             if props.bias then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'dirLightShadowProp',
                     { idx, 'float', 'bias', selfS.bias }
                 )
@@ -221,18 +221,18 @@ function DirLight:linkWithScene(scene)
         ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index
-            scene:_dispatchToLightMats(
+            scene.pub:sendMessage(
                 'dirLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
             )
             if props.nearDist then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'dirLightShadowProp',
                     { idx, 'float', 'nearDist', selfC.nearDist }
                 )
             end
             if props.farDist then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'dirLightShadowProp',
                     { idx, 'float', 'farDist', selfC.farDist }
                 )
@@ -288,37 +288,37 @@ function SpotLight:linkWithScene(scene)
     self.onUpdate = function(self, props)
         if props.color or props.intensity then
             local col = self.color:clone():scale(self.intensity)
-            scene:_dispatchToLightMats('spotLightProp',
+            scene.pub:sendMessage('spotLightProp',
                 { self.index, 'vec3', 'color', col }
             )
         end
         if props.position then
-            scene:_dispatchToLightMats('spotLightProp',
+            scene.pub:sendMessage('spotLightProp',
                 { self.index, 'vec3', 'position', self.position}
             )
         end
         if props.rotation then
             local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
-            scene:_dispatchToLightMats('spotLightProp',
+            scene.pub:sendMessage('spotLightProp',
                 { self.index, 'vec3', 'direction', facing }
             )
         end
         if props.angle then
             local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
-            scene:_dispatchToLightMats('spotLightProp',
+            scene.pub:sendMessage('spotLightProp',
                 { self.index, 'float', 'cosAngle', cos(self.angle) }
             )
-            scene:_dispatchToLightMats('spotLightProp',
+            scene.pub:sendMessage('spotLightProp',
                 { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
             )
         elseif props.penumbra then
             local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
-            scene:_dispatchToLightMats('spotLightProp',
+            scene.pub:sendMessage('spotLightProp',
                 { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
             )
         end
         if props.colorMap then
-            scene:_dispatchToLightMats('spotLightColorMap',
+            scene.pub:sendMessage('spotLightColorMap',
                 { index = self.index, value = props.colorMap }
             )
         end
@@ -330,7 +330,7 @@ function SpotLight:linkWithScene(scene)
         self.shadow.onUpdate = function(selfS, props)
             local idx = self.index
             if props.bias then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'spotLightShadowProp',
                     { idx, 'float', 'bias', selfS.bias }
                 )
@@ -341,18 +341,18 @@ function SpotLight:linkWithScene(scene)
         ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index
-            scene:_dispatchToLightMats(
+            scene.pub:sendMessage(
                 'spotLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
             )
             if props.nearDist then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'spotLightShadowProp',
                     { idx, 'float', 'nearDist', selfC.nearDist }
                 )
             end
             if props.farDist then
-                scene:_dispatchToLightMats(
+                scene.pub:sendMessage(
                     'spotLightShadowProp',
                     { idx, 'float', 'farDist', selfC.farDist }
                 )

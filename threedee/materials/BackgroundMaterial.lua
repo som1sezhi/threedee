@@ -76,15 +76,15 @@ end
 BackgroundMaterial.changeFuncs['envMapRotation'] = cfs.mat3ChangeFunc('envMapRotation')
 BackgroundMaterial.changeFuncs['intensity'] = cfs.floatChangeFunc('intensity')
 
--- override camera event handlers to only send the rotation part of the view matrix,
+-- override camera event listeners to only send the rotation part of the view matrix,
 -- so that the background object follows the camera
 local tempMat4 = Mat4:new()
 local tempMat3 = Mat3:new()
-BackgroundMaterial.eventHandlers['viewMatrix'] = function(self, args)
+BackgroundMaterial.listeners['viewMatrix'] = function(self, args)
     local rotationOnly = tempMat4:setUpperMat3(tempMat3:setFromMat4(args.value))
     self.shader:uniformMatrix4fv('tdViewMatrix', rotationOnly)
 end
-BackgroundMaterial.eventHandlers['cameraReplaced'] = function(self, args)
+BackgroundMaterial.listeners['cameraReplaced'] = function(self, args)
     local rotationOnly = tempMat4:setUpperMat3(tempMat3:setFromMat4(args.camera.viewMatrix))
     self.shader:uniform3fv('cameraPos', args.camera.position)
     self.shader:uniformMatrix4fv('tdViewMatrix', rotationOnly)

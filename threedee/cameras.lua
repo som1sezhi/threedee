@@ -30,13 +30,13 @@ function Camera:linkWithScene(scene)
     ---@param props Camera.P
     self.onUpdate = function(self, props)
         if props.position then
-            scene:_dispatchToCameraMats('cameraPos', { value = props.position })
+            scene.pub:sendMessage('cameraPos', { value = props.position })
         end
         if props.position or props.rotation or props.viewMatrix then
-            scene:_dispatchToCameraMats('viewMatrix', { value = self.viewMatrix })
+            scene.pub:sendMessage('viewMatrix', { value = self.viewMatrix })
         end
         if self._projMatWasUpdated then
-            scene:_dispatchToCameraMats('projMatrix', { value = self.projMatrix })
+            scene.pub:sendMessage('projMatrix', { value = self.projMatrix })
             self._projMatWasUpdated = false
         end
     end

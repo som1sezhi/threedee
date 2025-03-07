@@ -48,7 +48,11 @@ function StandardShadow:drawShadowMap(scene)
     scene.camera = self.camera
 
     -- set standardDepthMat to use this shadow's camera
-    standardDepthMat:dispatchEvent('cameraReplaced', { camera = self.camera })
+    -- TODO: perhaps figure out some way to call this listener through the
+    -- pubsub mechanism instead of circumventing it?
+    standardDepthMat.listeners['cameraReplaced'](
+        standardDepthMat, { camera = self.camera }
+    )
     standardDepthMat:onFrameStart(scene) -- set nearDist/farDist
 
     -- draw shadow map to screen

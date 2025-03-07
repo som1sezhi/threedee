@@ -2,7 +2,7 @@ local class = require 'threedee.class'
 local actors = require 'threedee._actors'
 local Updatable = require 'threedee.Updatable'
 
----@alias EventHandler fun(self: Material, args: table)
+---@alias MaterialListener fun(self: Material, args: table)
 ---@alias ChangeFunc fun(self: Material, newVal?: any)
 
 ---@class Material: Updatable
@@ -11,7 +11,7 @@ local Updatable = require 'threedee.Updatable'
 ---@field fragSource? string
 ---@field mixins MaterialMixin[]
 ---@field changeFuncs {[string]: ChangeFunc}
----@field eventHandlers {[string]: EventHandler}
+---@field listeners {[string]: MaterialListener}
 ---@field useCamera? boolean
 ---@field useLights? boolean
 local Material = class('Material', Updatable)
@@ -19,7 +19,7 @@ local Material = class('Material', Updatable)
 ---@class (partial) Material.P: Material
 
 Material.mixins = {}
-Material.eventHandlers = {}
+Material.listeners = {}
 
 ---@generic M: Material
 ---@param self M
@@ -88,7 +88,11 @@ local function allPairsIter(state, prevKey)
         return key, val
     else
         while key == nil do
-            state.currTable = getmetatable(state.currTable).__index
+            local mt = getmetatable(state.currTable)
+            if mt == nil then
+                return
+            end
+            state.currTable = mt.__index
             if type(state.currTable) ~= 'table' then
                 return -- end iteration (no more __index tables to iterate through)
             end
@@ -117,6 +121,12 @@ function Material:onBeforeFirstDraw(scene)
     for _, changeFunc in allPairs(self.changeFuncs) do
         changeFunc(self)
     end
+    for topic, listener in allPairs(self.listeners) do
+        local listener = listener
+        scene.pub:subscribe(topic, function(args)
+            listener(self, args)
+        end)
+    end
     for _, mixin in ipairs(self.mixins) do
         if mixin.onBeforeFirstDraw then
             mixin.onBeforeFirstDraw(self, scene)
@@ -141,16 +151,6 @@ function Material:onBeforeDraw(act)
         if mixin.onBeforeDraw then
             mixin.onBeforeDraw(self, act)
         end
-    end
-end
-
----Dispatch an event to the material.
----@param event string
----@param args table
-function Material:dispatchEvent(event, args)
-    local handler = self.eventHandlers[event]
-    if handler then
-        handler(self, args)
     end
 end
 

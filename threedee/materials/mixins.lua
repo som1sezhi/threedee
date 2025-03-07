@@ -17,7 +17,7 @@ local typeToUniformFunc = {
 ---@field onFrameStart? fun(self: Material, scene: Scene)
 ---@field onBeforeDraw? fun(self: Material, act: ActorWithMaterial)
 ---@field changeFuncs? {[string]: ChangeFunc}
----@field eventHandlers? {[string]: EventHandler}
+---@field listeners? {[string]: MaterialListener}
 
 ---@type {[string]: MaterialMixin}
 local mixins = {}
@@ -40,10 +40,10 @@ mixins.CameraMixin = {
     end,
 
     onBeforeFirstDraw = function(self, scene)
-        self:dispatchEvent('cameraReplaced', { camera = scene.camera })
+        self.listeners['cameraReplaced'](self, { camera = scene.camera })
     end,
 
-    eventHandlers = {
+    listeners = {
         cameraPos = function(self, args)
             self.shader:uniform3fv('cameraPos', args.value)
         end,
@@ -254,7 +254,7 @@ mixins.EnvMapMixin = {
 
 ---------------------------------------------------------------------
 
-local function lightUniformEventHandler(uniformArrayName)
+local function lightUniformListener(uniformArrayName)
     local template = uniformArrayName .. '[%d].%s'
     return function(self, args)
         local uname = string.format(template, args[1], args[3])
@@ -296,24 +296,30 @@ mixins.LightsMixin = {
     end,
 
     onBeforeFirstDraw = function(self, scene)
+        -- a lot of this doesn't feel super elegant...
+
+        local function dispatchToSelf(topic, args)
+            self.listeners[topic](self, args)
+        end
+
         local ambientLight = Vec3:new(0, 0, 0)
         for _, light in ipairs(scene.lights.ambientLights) do
             ambientLight:add(light.color:clone():scale(light.intensity))
         end
-        self:dispatchEvent('ambientLight', { value = ambientLight })
+        dispatchToSelf('ambientLight', { value = ambientLight })
 
         for _, light in ipairs(scene.lights.pointLights) do
             local idx = light.index
             local col = light.color:clone():scale(light.intensity)
-            self:dispatchEvent('pointLightProp', { idx, 'vec3', 'color', col })
-            self:dispatchEvent('pointLightProp', { idx, 'vec3', 'position', light.position })
+            dispatchToSelf('pointLightProp', { idx, 'vec3', 'color', col })
+            dispatchToSelf('pointLightProp', { idx, 'vec3', 'position', light.position })
         end
         for _, light in ipairs(scene.lights.dirLights) do
             local idx = light.index
             local col = light.color:clone():scale(light.intensity)
             local facing = Vec3:new(0, 0, -1):applyQuat(light.rotation)
-            self:dispatchEvent('dirLightProp', { idx, 'vec3', 'color', col })
-            self:dispatchEvent('dirLightProp', { idx, 'vec3', 'direction', facing })
+            dispatchToSelf('dirLightProp', { idx, 'vec3', 'color', col })
+            dispatchToSelf('dirLightProp', { idx, 'vec3', 'direction', facing })
         end
         for _, light in ipairs(scene.lights.spotLights) do
             local idx = light.index
@@ -321,13 +327,13 @@ mixins.LightsMixin = {
             local facing = Vec3:new(0, 0, -1):applyQuat(light.rotation)
             local cosAngle = math.cos(light.angle)
             local cosInnerAngle = math.cos(light.angle * (1 - light.penumbra))
-            self:dispatchEvent('spotLightProp', { idx, 'vec3', 'color', col })
-            self:dispatchEvent('spotLightProp', { idx, 'vec3', 'position', light.position })
-            self:dispatchEvent('spotLightProp', { idx, 'vec3', 'direction', facing })
-            self:dispatchEvent('spotLightProp', { idx, 'float', 'cosAngle', cosAngle })
-            self:dispatchEvent('spotLightProp', { idx, 'float', 'cosInnerAngle', cosInnerAngle })
+            dispatchToSelf('spotLightProp', { idx, 'vec3', 'color', col })
+            dispatchToSelf('spotLightProp', { idx, 'vec3', 'position', light.position })
+            dispatchToSelf('spotLightProp', { idx, 'vec3', 'direction', facing })
+            dispatchToSelf('spotLightProp', { idx, 'float', 'cosAngle', cosAngle })
+            dispatchToSelf('spotLightProp', { idx, 'float', 'cosInnerAngle', cosInnerAngle })
             if light.castShadows and light.colorMap then
-                self:dispatchEvent('spotLightColorMap', { index = idx, value = light.colorMap })
+                dispatchToSelf('spotLightColorMap', { index = idx, value = light.colorMap })
             end
         end
 
@@ -335,36 +341,36 @@ mixins.LightsMixin = {
         for i, shadow in ipairs(scene.lights.pointLightShadows) do
             local idx = i - 1
             local camera = shadow.camera
-            self:dispatchEvent('pointLightShadowMatrix',
+            dispatchToSelf('pointLightShadowMatrix',
                 { index = idx, value = camera.projMatrix * camera.viewMatrix }
             )
-            self:dispatchEvent('pointLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
-            self:dispatchEvent('pointLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
-            self:dispatchEvent('pointLightShadowProp', { idx, 'float', 'bias', shadow.bias })
+            dispatchToSelf('pointLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
+            dispatchToSelf('pointLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
+            dispatchToSelf('pointLightShadowProp', { idx, 'float', 'bias', shadow.bias })
             shadowMap = shadow.shadowMapAft:GetTexture()
             self.shader:uniformTexture('pointLightShadowMaps[' .. idx .. ']', shadowMap)
         end
         for i, shadow in ipairs(scene.lights.dirLightShadows) do
             local idx = i - 1
             local camera = shadow.camera
-            self:dispatchEvent('dirLightShadowMatrix',
+            dispatchToSelf('dirLightShadowMatrix',
                 { index = idx, value = camera.projMatrix * camera.viewMatrix }
             )
-            self:dispatchEvent('dirLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
-            self:dispatchEvent('dirLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
-            self:dispatchEvent('dirLightShadowProp', { idx, 'float', 'bias', shadow.bias })
+            dispatchToSelf('dirLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
+            dispatchToSelf('dirLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
+            dispatchToSelf('dirLightShadowProp', { idx, 'float', 'bias', shadow.bias })
             shadowMap = shadow.shadowMapAft:GetTexture()
             self.shader:uniformTexture('dirLightShadowMaps[' .. idx .. ']', shadowMap)
         end
         for i, shadow in ipairs(scene.lights.spotLightShadows) do
             local idx = i - 1
             local camera = shadow.camera
-            self:dispatchEvent('spotLightShadowMatrix',
+            dispatchToSelf('spotLightShadowMatrix',
                 { index = idx, value = camera.projMatrix * camera.viewMatrix }
             )
-            self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
-            self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
-            self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'bias', shadow.bias })
+            dispatchToSelf('spotLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
+            dispatchToSelf('spotLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
+            dispatchToSelf('spotLightShadowProp', { idx, 'float', 'bias', shadow.bias })
             shadowMap = shadow.shadowMapAft:GetTexture()
             self.shader:uniformTexture('spotLightShadowMaps[' .. idx .. ']', shadowMap)
         end
@@ -383,23 +389,23 @@ mixins.LightsMixin = {
         self.shader:uniform1i('doShadows', scene.doShadows and 1 or 0)
     end,
 
-    eventHandlers = {
+    listeners = {
         ambientLight = function(self, args)
             self.shader:uniform3fv('ambientLight', args.value)
         end,
-        pointLightProp = lightUniformEventHandler('pointLights'),
+        pointLightProp = lightUniformListener('pointLights'),
         pointLightShadowMatrix = function(self, args)
             local uname = 'pointLightMatrices[' .. args.index .. ']'
             self.shader:uniformMatrix4fv(uname, args.value)
         end,
-        pointLightShadowProp = lightUniformEventHandler('pointLightShadows'),
-        dirLightProp = lightUniformEventHandler('dirLights'),
+        pointLightShadowProp = lightUniformListener('pointLightShadows'),
+        dirLightProp = lightUniformListener('dirLights'),
         dirLightShadowMatrix = function(self, args)
             local uname = 'dirLightMatrices[' .. args.index .. ']'
             self.shader:uniformMatrix4fv(uname, args.value)
         end,
-        dirLightShadowProp = lightUniformEventHandler('dirLightShadows'),
-        spotLightProp = lightUniformEventHandler('spotLights'),
+        dirLightShadowProp = lightUniformListener('dirLightShadows'),
+        spotLightProp = lightUniformListener('spotLights'),
         spotLightColorMap = function(self, args)
             local uname = 'spotLightColorMaps[' .. args.index .. ']'
             self.shader:uniformTexture(uname, args.value)
@@ -408,7 +414,7 @@ mixins.LightsMixin = {
             local uname = 'spotLightMatrices[' .. args.index .. ']'
             self.shader:uniformMatrix4fv(uname, args.value)
         end,
-        spotLightShadowProp = lightUniformEventHandler('spotLightShadows'),
+        spotLightShadowProp = lightUniformListener('spotLightShadows'),
     }
 }
 

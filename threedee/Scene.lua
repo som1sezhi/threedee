@@ -5,7 +5,8 @@ local BackgroundMaterial = require 'threedee.materials.BackgroundMaterial'
 local Vec3 = require 'threedee.math.Vec3'
 local Mat3 = require 'threedee.math.Mat3'
 local sceneActors = require 'threedee.sceneactors'
-local Updatable   = require 'threedee.Updatable'
+local Updatable = require 'threedee.Updatable'
+local PubSub = require 'threedee.PubSub'
 
 ---@class SceneLights
 ---@field ambientLights AmbientLight[]
@@ -22,6 +23,7 @@ local Updatable   = require 'threedee.Updatable'
 ---@field actors SceneActor[]
 ---@field materials Material[]
 ---@field lights SceneLights
+---@field pub PubSub
 ---@field doShadows boolean
 ---@field background Vec3|RageTexture|EnvMap
 ---@field backgroundRotation Mat3
@@ -30,8 +32,6 @@ local Updatable   = require 'threedee.Updatable'
 ---@field _isDrawingShadowMap boolean
 ---@field _overrideMaterial? Material
 ---@field private _firstDraw boolean
----@field private _lightMaterials Material[]
----@field private _cameraMaterials Material[]
 ---@field private _backgroundMaterial BackgroundMaterial
 ---@field private _backgroundActor MeshActor
 local Scene = class('Scene', Updatable)
@@ -57,6 +57,8 @@ function Scene:new(aframe, camera)
             spotLightShadows = {},
         },
 
+        pub = PubSub:new(),
+
         doShadows = false,
         background = Vec3:new(0, 0, 0),
         backgroundRotation = Mat3:new(),
@@ -65,8 +67,6 @@ function Scene:new(aframe, camera)
 
         _isDrawingShadowMap = false,
         _firstDraw = true,
-        _lightMaterials = {},
-        _cameraMaterials = {bgMat},
         _backgroundMaterial = bgMat,
         _backgroundActor = sceneActors.MeshActor:new(actors.cubeModel, bgMat)
     }
@@ -95,12 +95,6 @@ function Scene:_addMaterialsFromSceneActor(sceneActor)
         -- add to material tables
         if shouldAddMaterial then
             table.insert(self.materials, material)
-            if material.useCamera then
-                table.insert(self._cameraMaterials, material)
-            end
-            if material.useLights then
-                table.insert(self._lightMaterials, material)
-            end
         end
     elseif sceneActor.children then
         -- this is a SceneActorFrame, add children's materials
@@ -206,7 +200,7 @@ function Scene:draw()
         for _, material in ipairs(self.materials) do
             material:onBeforeFirstDraw(self)
         end
-        shadows.standardDepthMat:onBeforeFirstDraw(self)
+        shadows.standardDepthMat:onBeforeFirstDraw(self) -- TODO: is this correct?
         self._backgroundMaterial:onBeforeFirstDraw(self)
         self._firstDraw = false
     end
@@ -283,22 +277,6 @@ function Scene:_update(props)
         self._backgroundMaterial:update{
             intensity = self.backgroundIntensity
         }
-    end
-end
-
----@param event string
----@param args table
-function Scene:_dispatchToLightMats(event, args)
-    for _, mat in ipairs(self._lightMaterials) do
-        mat:dispatchEvent(event, args)
-    end
-end
-
----@param event string
----@param args table
-function Scene:_dispatchToCameraMats(event, args)
-    for _, mat in ipairs(self._cameraMaterials) do
-        mat:dispatchEvent(event, args)
     end
 end
 

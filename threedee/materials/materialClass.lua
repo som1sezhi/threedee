@@ -13,8 +13,8 @@ local function materialClass(name, parentClass, mixins)
     -- parent's changeFuncs already contain inherited mixins' changeFuncs, so we can
     -- just look there as fallback
     cls.changeFuncs = setmetatable({}, {__index = parentClass.changeFuncs})
-    -- same with eventHandlers
-    cls.eventHandlers = setmetatable({}, {__index = parentClass.eventHandlers})
+    -- same with listeners
+    cls.listeners = setmetatable({}, {__index = parentClass.listeners})
 
     -- incorporate new mixins into the class
     for _, mixin in ipairs(mixins) do
@@ -25,10 +25,10 @@ local function materialClass(name, parentClass, mixins)
                 cls.changeFuncs[k] = changeFunc
             end
         end
-        -- add new eventHandlers
-        if mixin.eventHandlers then
-            for k, eventHandler in pairs(mixin.eventHandlers) do
-                cls.eventHandlers[k] = eventHandler
+        -- add new listeners
+        if mixin.listeners then
+            for k, listeners in pairs(mixin.listeners) do
+                cls.listeners[k] = listeners
             end
         end
     end
