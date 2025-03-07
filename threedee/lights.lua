@@ -123,6 +123,18 @@ function PointLight:linkWithScene(scene)
     end
 
     if self.castShadows then
+        ---@param selfS StandardShadow
+        ---@param props StandardShadow.P
+        self.shadow.onUpdate = function(selfS, props)
+            local idx = self.index
+            if props.bias then
+                scene:_dispatchToLightMats(
+                    'pointLightShadowProp',
+                    { idx, 'float', 'bias', selfS.bias }
+                )
+            end
+        end
+
         ---@param selfC Camera
         ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
@@ -193,6 +205,18 @@ function DirLight:linkWithScene(scene)
     end
 
     if self.castShadows then
+        ---@param selfS StandardShadow
+        ---@param props StandardShadow.P
+        self.shadow.onUpdate = function(selfS, props)
+            local idx = self.index
+            if props.bias then
+                scene:_dispatchToLightMats(
+                    'dirLightShadowProp',
+                    { idx, 'float', 'bias', selfS.bias }
+                )
+            end
+        end
+
         ---@param selfC Camera
         ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
@@ -301,6 +325,18 @@ function SpotLight:linkWithScene(scene)
     end
 
     if self.castShadows then
+        ---@param selfS StandardShadow
+        ---@param props StandardShadow.P
+        self.shadow.onUpdate = function(selfS, props)
+            local idx = self.index
+            if props.bias then
+                scene:_dispatchToLightMats(
+                    'spotLightShadowProp',
+                    { idx, 'float', 'bias', selfS.bias }
+                )
+            end
+        end
+
         ---@param selfC Camera
         ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)

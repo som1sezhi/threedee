@@ -340,6 +340,7 @@ mixins.LightsMixin = {
             )
             self:dispatchEvent('pointLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
             self:dispatchEvent('pointLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
+            self:dispatchEvent('pointLightShadowProp', { idx, 'float', 'bias', shadow.bias })
             shadowMap = shadow.shadowMapAft:GetTexture()
             self.shader:uniformTexture('pointLightShadowMaps[' .. idx .. ']', shadowMap)
         end
@@ -351,6 +352,7 @@ mixins.LightsMixin = {
             )
             self:dispatchEvent('dirLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
             self:dispatchEvent('dirLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
+            self:dispatchEvent('dirLightShadowProp', { idx, 'float', 'bias', shadow.bias })
             shadowMap = shadow.shadowMapAft:GetTexture()
             self.shader:uniformTexture('dirLightShadowMaps[' .. idx .. ']', shadowMap)
         end
@@ -362,6 +364,7 @@ mixins.LightsMixin = {
             )
             self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
             self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
+            self:dispatchEvent('spotLightShadowProp', { idx, 'float', 'bias', shadow.bias })
             shadowMap = shadow.shadowMapAft:GetTexture()
             self.shader:uniformTexture('spotLightShadowMaps[' .. idx .. ']', shadowMap)
         end

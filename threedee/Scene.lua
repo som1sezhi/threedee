@@ -247,16 +247,16 @@ function Scene:drawActors()
     end
 end
 
----@class Scene.Update
+---@class Scene.P
 ---@field doShadows? boolean
 ---@field background? Vec3|RageTexture|EnvMap
 ---@field backgroundRotation? Mat3
 ---@field backgroundIntensity? number
 
----@type fun(self: Scene, props: Scene.Update)
+---@type fun(self: Scene, props: Scene.P)
 Scene.update = Updatable.update
 
----@param props Scene.Update
+---@param props Scene.P
 function Scene:_update(props)
     Updatable._update(self, props)
 

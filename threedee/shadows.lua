@@ -2,6 +2,7 @@ local class = require 'threedee.class'
 local actors = require 'threedee._actors'
 local DepthMaterial = require 'threedee.materials.DepthMaterial'
 local cameras = require 'threedee.cameras'
+local Updatable = require 'threedee.Updatable'
 
 local standardDepthMat = DepthMaterial:new({
     shader = actors.depthMatActor:GetShader() --[[@as RageShaderProgram]]
@@ -11,14 +12,15 @@ standardDepthMat.alphaTest = 0.5
 standardDepthMat:compile()
 
 ---A regular shadow map using a single camera and an RGB-packed depth format.
----@class StandardShadow
+---@class StandardShadow: Updatable
 ---@field camera Camera
 ---@field bias number
 ---@field shadowMapAft? ActorFrameTexture
-local StandardShadow = class('StandardShadow')
+local StandardShadow = class('StandardShadow', Updatable)
 
 ---@class StandardShadow.P
 ---@field camera? Camera
+---@field bias? number
 
 ---@param props StandardShadow.P
 ---@return StandardShadow
@@ -30,6 +32,9 @@ function StandardShadow:new(props)
     setmetatable(o, StandardShadow)
     return o
 end
+
+---@type fun(self: StandardShadow, props: StandardShadow.P)
+StandardShadow.update = Updatable.update
 
 ---Draws the shadow map and saves it to self.shadowMapAft.
 ---@param scene Scene

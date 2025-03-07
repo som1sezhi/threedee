@@ -7,6 +7,7 @@ return {
 struct ShadowInfo {
     float nearDist;
     float farDist;
+    float bias;
 };
 
 #if defined(NUM_POINT_LIGHTS) && NUM_POINT_LIGHTS > 0

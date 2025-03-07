@@ -44,7 +44,7 @@ float calcShadow(vec3 projCoord, sampler2D shadowMap, ShadowInfo shadowInfo) {
         return 0.0;
 
     // currentDepth -= max(0.01 * (1.0 - dot(nrm, light)), 0.002);
-    currentDepth -= 0.003;
+    currentDepth += shadowInfo.bias;
 
     float shadow = 0.0;
     float pcfDepth = 0.0;
@@ -93,7 +93,7 @@ float calcShadow(vec4 fragLightSpacePos, sampler2D shadowMap, ShadowInfo shadowI
 
     // currentDepth -= max(0.01 * (1.0 - dot(nrm, light)), 0.002);
     //currentDepth = invlerp(shadowInfo.nearDist, shadowInfo.farDist, currentDepth);
-    currentDepth -= 0.003;
+    currentDepth += shadowInfo.bias;
 
     #ifdef PCF_3X3
         #define IS_SHADOW_SIZE 9
