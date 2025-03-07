@@ -11,7 +11,6 @@ local cos = math.cos
 ---@field color Vec3
 ---@field intensity number
 ---@field shadow? StandardShadow
----@field scene Scene
 local Light = class('Light', OrientedObject)
 
 ---@class (partial) Light.P: Light, OrientedObject.P
@@ -31,11 +30,8 @@ function Light.new(self, color, intensity, position, rotation)
 end
 
 ---@param scene Scene
-function Light:finalize(scene)
-    self.scene = scene
-    -- only add the onUpdate method once the scene has been assigned, since
-    -- we need scene stuff to run these onUpdate
-    self.onUpdate = self._onUpdate
+function Light:linkWithScene(scene)
+    -- implemented by subclass
 end
 
 ---@param props Light.P
@@ -55,19 +51,6 @@ function Light:_update(props)
     end
 end
 
----Once the scene is finalized, this function becomes the onUpdate method
----for this light.
----@param props Light.P
-function Light:_onUpdate(props)
-end
-
----@protected
----@param event string
----@param args table
-function Light:_dispatchToLightMats(event, args)
-    self.scene:_dispatchToLightMats(event, args)
-end
-
 --------------------------------------------------------------------------------
 
 ---@class AmbientLight: Light
@@ -79,20 +62,22 @@ function AmbientLight:new(color, intensity)
     return Light.new(self, color, intensity)
 end
 
----@type fun(self: AmbientLight, props: AmbientLight.P)
-AmbientLight.update = Light.update
-
----@param props AmbientLight.P
-function AmbientLight:_onUpdate(props)
-    if props.color or props.intensity then
-        -- calculate new ambient light contribution
-        local lightColor = Vec3:new(0, 0, 0)
-        for _, ambLight in ipairs(self.scene.lights.ambientLights) do
-            lightColor:add(ambLight.color:clone():scale(ambLight.intensity))
+function AmbientLight:linkWithScene(scene)
+    ---@param props AmbientLight.P
+    self.onUpdate = function(self, props)
+        if props.color or props.intensity then
+            -- calculate new ambient light contribution
+            local lightColor = Vec3:new(0, 0, 0)
+            for _, ambLight in ipairs(scene.lights.ambientLights) do
+                lightColor:add(ambLight.color:clone():scale(ambLight.intensity))
+            end
+            scene:_dispatchToLightMats('ambientLight', { value = lightColor })
         end
-        self:_dispatchToLightMats('ambientLight', { value = lightColor })
     end
 end
+
+---@type fun(self: AmbientLight, props: AmbientLight.P)
+AmbientLight.update = Light.update
 
 --------------------------------------------------------------------------------
 
@@ -119,25 +104,41 @@ function PointLight:new(color, intensity, position)
     return o
 end
 
-function PointLight:finalize(scene)
-    Light.finalize(self, scene)
+function PointLight:linkWithScene(scene)
+    ---@param props PointLight.P
+    self.onUpdate = function(self, props)
+        if props.color or props.intensity then
+            local col = self.color:clone():scale(self.intensity)
+            scene:_dispatchToLightMats(
+                'pointLightProp',
+                { self.index, 'vec3', 'color', col }
+            )
+        end
+        if props.position then
+            scene:_dispatchToLightMats(
+                'pointLightProp',
+                { self.index, 'vec3', 'position', self.position }
+            )
+        end
+    end
+
     if self.castShadows then
+        ---@param selfC Camera
+        ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index
-            ---@cast selfC PerspectiveCamera | OrthographicCamera
-            ---@cast props PerspectiveCamera.P | OrthographicCamera.P
-            self:_dispatchToLightMats(
+            scene:_dispatchToLightMats(
                 'pointLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
             )
             if props.nearDist then
-                self:_dispatchToLightMats(
+                scene:_dispatchToLightMats(
                     'pointLightShadowProp',
                     { idx, 'float', 'nearDist', selfC.nearDist }
                 )
             end
             if props.farDist then
-                self:_dispatchToLightMats(
+                scene:_dispatchToLightMats(
                     'pointLightShadowProp',
                     { idx, 'float', 'farDist', selfC.farDist }
                 )
@@ -148,23 +149,6 @@ end
 
 ---@type fun(self: PointLight, props: PointLight.P)
 PointLight.update = Light.update
-
----@param props PointLight.P
-function PointLight:_onUpdate(props)
-    if props.color or props.intensity then
-        local col = self.color:clone():scale(self.intensity)
-        self:_dispatchToLightMats(
-            'pointLightProp',
-            { self.index, 'vec3', 'color', col }
-        )
-    end
-    if props.position then
-        self:_dispatchToLightMats(
-            'pointLightProp',
-            { self.index, 'vec3', 'position', self.position }
-        )
-    end
-end
 
 --------------------------------------------------------------------------------
 
@@ -189,25 +173,42 @@ function DirLight:new(color, intensity)
     return o
 end
 
-function DirLight:finalize(scene)
-    Light.finalize(self, scene)
+function DirLight:linkWithScene(scene)
+    ---@param props DirLight.P
+    self.onUpdate = function(self, props)
+        if props.color or props.intensity then
+            local col = self.color:clone():scale(self.intensity)
+            scene:_dispatchToLightMats(
+                'dirLightProp',
+                { self.index, 'vec3', 'color', col }
+            )
+        end
+        if props.rotation then
+            local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
+            scene:_dispatchToLightMats(
+                'dirLightProp',
+                { self.index, 'vec3', 'direction', facing }
+            )
+        end
+    end
+
     if self.castShadows then
+        ---@param selfC Camera
+        ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index
-            ---@cast selfC PerspectiveCamera | OrthographicCamera
-            ---@cast props PerspectiveCamera.P | OrthographicCamera.P
-            self:_dispatchToLightMats(
+            scene:_dispatchToLightMats(
                 'dirLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
             )
             if props.nearDist then
-                self:_dispatchToLightMats(
+                scene:_dispatchToLightMats(
                     'dirLightShadowProp',
                     { idx, 'float', 'nearDist', selfC.nearDist }
                 )
             end
             if props.farDist then
-                self:_dispatchToLightMats(
+                scene:_dispatchToLightMats(
                     'dirLightShadowProp',
                     { idx, 'float', 'farDist', selfC.farDist }
                 )
@@ -218,24 +219,6 @@ end
 
 ---@type fun(self: DirLight, props: DirLight.P)
 DirLight.update = Light.update
-
----@param props DirLight.P
-function DirLight:_onUpdate(props)
-    if props.color or props.intensity then
-        local col = self.color:clone():scale(self.intensity)
-        self:_dispatchToLightMats(
-            'dirLightProp',
-            { self.index, 'vec3', 'color', col }
-        )
-    end
-    if props.rotation then
-        local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
-        self:_dispatchToLightMats(
-            'dirLightProp',
-            { self.index, 'vec3', 'direction', facing }
-        )
-    end
-end
 
 --------------------------------------------------------------------------------
 
@@ -276,25 +259,64 @@ function SpotLight:new(color, intensity, position, rotation, angle, penumbra)
     return o
 end
 
-function SpotLight:finalize(scene)
-    Light.finalize(self, scene)
+function SpotLight:linkWithScene(scene)
+    ---@param props SpotLight.P
+    self.onUpdate = function(self, props)
+        if props.color or props.intensity then
+            local col = self.color:clone():scale(self.intensity)
+            scene:_dispatchToLightMats('spotLightProp',
+                { self.index, 'vec3', 'color', col }
+            )
+        end
+        if props.position then
+            scene:_dispatchToLightMats('spotLightProp',
+                { self.index, 'vec3', 'position', self.position}
+            )
+        end
+        if props.rotation then
+            local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
+            scene:_dispatchToLightMats('spotLightProp',
+                { self.index, 'vec3', 'direction', facing }
+            )
+        end
+        if props.angle then
+            local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
+            scene:_dispatchToLightMats('spotLightProp',
+                { self.index, 'float', 'cosAngle', cos(self.angle) }
+            )
+            scene:_dispatchToLightMats('spotLightProp',
+                { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
+            )
+        elseif props.penumbra then
+            local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
+            scene:_dispatchToLightMats('spotLightProp',
+                { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
+            )
+        end
+        if props.colorMap then
+            scene:_dispatchToLightMats('spotLightColorMap',
+                { index = self.index, value = props.colorMap }
+            )
+        end
+    end
+
     if self.castShadows then
+        ---@param selfC Camera
+        ---@param props Camera.P
         self.shadow.camera.onUpdate = function(selfC, props)
             local idx = self.index
-            ---@cast selfC PerspectiveCamera | OrthographicCamera
-            ---@cast props PerspectiveCamera.P | OrthographicCamera.P
-            self:_dispatchToLightMats(
+            scene:_dispatchToLightMats(
                 'spotLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
             )
             if props.nearDist then
-                self:_dispatchToLightMats(
+                scene:_dispatchToLightMats(
                     'spotLightShadowProp',
                     { idx, 'float', 'nearDist', selfC.nearDist }
                 )
             end
             if props.farDist then
-                self:_dispatchToLightMats(
+                scene:_dispatchToLightMats(
                     'spotLightShadowProp',
                     { idx, 'float', 'farDist', selfC.farDist }
                 )
@@ -313,46 +335,6 @@ function SpotLight:_update(props)
         self.shadow.camera:update({
             fov = self.angle * 2
         })
-    end
-end
-
----@param props SpotLight.P
-function SpotLight:_onUpdate(props)
-    if props.color or props.intensity then
-        local col = self.color:clone():scale(self.intensity)
-        self:_dispatchToLightMats('spotLightProp',
-            { self.index, 'vec3', 'color', col }
-        )
-    end
-    if props.position then
-        self:_dispatchToLightMats('spotLightProp',
-            { self.index, 'vec3', 'position', self.position}
-        )
-    end
-    if props.rotation then
-        local facing = Vec3:new(0, 0, -1):applyQuat(self.rotation)
-        self:_dispatchToLightMats('spotLightProp',
-            { self.index, 'vec3', 'direction', facing }
-        )
-    end
-    if props.angle then
-        local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
-        self:_dispatchToLightMats('spotLightProp',
-            { self.index, 'float', 'cosAngle', cos(self.angle) }
-        )
-        self:_dispatchToLightMats('spotLightProp',
-            { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
-        )
-    elseif props.penumbra then
-        local cosInnerAngle = cos(self.angle * (1 - self.penumbra))
-        self:_dispatchToLightMats('spotLightProp',
-            { self.index, 'float', 'cosInnerAngle', cosInnerAngle }
-        )
-    end
-    if props.colorMap then
-        self:_dispatchToLightMats('spotLightColorMap',
-            { index = self.index, value = props.colorMap }
-        )
     end
 end
 

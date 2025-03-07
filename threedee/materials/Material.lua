@@ -1,10 +1,11 @@
 local class = require 'threedee.class'
 local actors = require 'threedee._actors'
+local Updatable = require 'threedee.Updatable'
 
 ---@alias EventHandler fun(self: Material, args: table)
 ---@alias ChangeFunc fun(self: Material, newVal?: any)
 
----@class Material
+---@class Material: Updatable
 ---@field shader RageShaderProgram
 ---@field vertSource? string
 ---@field fragSource? string
@@ -13,12 +14,14 @@ local actors = require 'threedee._actors'
 ---@field eventHandlers {[string]: EventHandler}
 ---@field useCamera? boolean
 ---@field useLights? boolean
-local Material = class('Material')
+local Material = class('Material', Updatable)
+
+---@class (partial) Material.P: Material
 
 Material.mixins = {}
 Material.eventHandlers = {}
 
----@generic M : Material
+---@generic M: Material
 ---@param self M
 ---@param initProps M?
 ---@return M
@@ -63,9 +66,7 @@ function Material:setDefines(scene)
     end
 end
 
----Set properties of the material, and updates the corresponding shader uniforms.
----@param props Material
-function Material:update(props)
+function Material:_update(props)
     for k, v in pairs(props) do
         self[k] = v
         local changeFunc = self.changeFuncs[k]

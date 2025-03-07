@@ -5,7 +5,7 @@ local BackgroundMaterial = require 'threedee.materials.BackgroundMaterial'
 local Vec3 = require 'threedee.math.Vec3'
 local Mat3 = require 'threedee.math.Mat3'
 local sceneActors = require 'threedee.sceneactors'
-local PhongMaterial = require 'threedee.materials.PhongMaterial'
+local Updatable   = require 'threedee.Updatable'
 
 ---@class SceneLights
 ---@field ambientLights AmbientLight[]
@@ -16,7 +16,7 @@ local PhongMaterial = require 'threedee.materials.PhongMaterial'
 ---@field spotLights SpotLight[]
 ---@field spotLightShadows StandardShadow[]
 
----@class Scene
+---@class Scene: Updatable
 ---@field aframe ActorFrame
 ---@field camera Camera
 ---@field actors SceneActor[]
@@ -26,6 +26,7 @@ local PhongMaterial = require 'threedee.materials.PhongMaterial'
 ---@field background Vec3|RageTexture|EnvMap
 ---@field backgroundRotation Mat3
 ---@field backgroundIntensity number
+---@field drawBackgroundFirst boolean
 ---@field _isDrawingShadowMap boolean
 ---@field _overrideMaterial? Material
 ---@field private _firstDraw boolean
@@ -33,7 +34,7 @@ local PhongMaterial = require 'threedee.materials.PhongMaterial'
 ---@field private _cameraMaterials Material[]
 ---@field private _backgroundMaterial BackgroundMaterial
 ---@field private _backgroundActor MeshActor
-local Scene = class('Scene')
+local Scene = class('Scene', Updatable)
 
 ---@param aframe ActorFrame
 ---@param camera Camera
@@ -60,6 +61,7 @@ function Scene:new(aframe, camera)
         background = Vec3:new(0, 0, 0),
         backgroundRotation = Mat3:new(),
         backgroundIntensity = 1,
+        drawBackgroundFirst = false,
 
         _isDrawingShadowMap = false,
         _firstDraw = true,
@@ -130,34 +132,9 @@ function Scene:addLight(light)
 end
 
 function Scene:finalize()
-    -- assign onAfterSet functions to camera/lights, so that changes to
-    -- camera/lights are sent to the materials that use them
-
-    local cameraMaterials = self._cameraMaterials
     local lights = self.lights
 
-    local function dispatchToCameraMats(event, args)
-        for _, mat in ipairs(cameraMaterials) do
-            mat:dispatchEvent(event, args)
-        end
-    end
-
-    self.camera.onUpdate = function(selfC, props)
-        ---@cast selfC Camera
-        ---@cast props PerspectiveCamera.P
-        if props.position then
-            dispatchToCameraMats('cameraPos', { value = props.position })
-        end
-        if props.position or props.rotation or props.viewMatrix then
-            dispatchToCameraMats('viewMatrix', { value = selfC.viewMatrix })
-        end
-        ---@diagnostic disable-next-line: invisible
-        if selfC._projMatWasUpdated then
-            dispatchToCameraMats('projMatrix', { value = selfC.projMatrix })
-            ---@diagnostic disable-next-line: invisible
-            selfC._projMatWasUpdated = false
-        end
-    end
+    self.camera:linkWithScene(self)
 
     -- sort such that shadow-casting lights come first
     local function sortFunc(a, b) return a.castShadows end
@@ -172,11 +149,11 @@ function Scene:finalize()
     end)
 
     for _, light in ipairs(lights.ambientLights) do
-        light:finalize(self)
+        light:linkWithScene(self)
     end
     for i, light in ipairs(lights.pointLights) do
         light.index = i - 1
-        light:finalize(self)
+        light:linkWithScene(self)
         if light.castShadows then
             table.insert(self.lights.pointLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
@@ -184,7 +161,7 @@ function Scene:finalize()
     end
     for i, light in ipairs(lights.dirLights) do
         light.index = i - 1
-        light:finalize(self)
+        light:linkWithScene(self)
         if light.castShadows then
             table.insert(self.lights.dirLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
@@ -192,7 +169,7 @@ function Scene:finalize()
     end
     for i, light in ipairs(lights.spotLights) do
         light.index = i - 1
-        light:finalize(self)
+        light:linkWithScene(self)
         if light.castShadows then
             table.insert(self.lights.spotLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
@@ -254,8 +231,14 @@ function Scene:draw()
         material:onFrameStart(self)
     end
     self._backgroundMaterial:onFrameStart(self)
+    if self.drawBackgroundFirst then
+        self._backgroundActor:Draw()
+    end
     self:drawActors()
-    self._backgroundActor:Draw()
+    if not self.drawBackgroundFirst then
+        self._backgroundActor:Draw()
+    end
+    
 end
 
 function Scene:drawActors()
@@ -270,11 +253,12 @@ end
 ---@field backgroundRotation? Mat3
 ---@field backgroundIntensity? number
 
+---@type fun(self: Scene, props: Scene.Update)
+Scene.update = Updatable.update
+
 ---@param props Scene.Update
-function Scene:update(props)
-    for k, v in pairs(props) do
-        self[k] = v
-    end
+function Scene:_update(props)
+    Updatable._update(self, props)
 
     local bg = props.background
     if bg then
@@ -306,6 +290,14 @@ end
 ---@param args table
 function Scene:_dispatchToLightMats(event, args)
     for _, mat in ipairs(self._lightMaterials) do
+        mat:dispatchEvent(event, args)
+    end
+end
+
+---@param event string
+---@param args table
+function Scene:_dispatchToCameraMats(event, args)
+    for _, mat in ipairs(self._cameraMaterials) do
         mat:dispatchEvent(event, args)
     end
 end

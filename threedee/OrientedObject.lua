@@ -1,15 +1,16 @@
 local class = require 'threedee.class'
+local Updatable = require 'threedee.Updatable'
 local Vec3 = require 'threedee.math.Vec3'
 local Quat = require 'threedee.math.Quat'
 local Mat3 = require 'threedee.math.Mat3'
 local Mat4 = require 'threedee.math.Mat4'
 
 ---Base class for a thing in 3D space with a position and orientation (cameras, lights)
----@class OrientedObject
+---@class OrientedObject: Updatable
 ---@field position Vec3
 ---@field rotation Quat
 ---@field viewMatrix Mat4
-local OrientedObject = class('OrientedObject')
+local OrientedObject = class('OrientedObject', Updatable)
 
 ---@class (partial) OrientedObject.P: OrientedObject
 
@@ -32,34 +33,26 @@ function OrientedObject.new(self, position, rotation)
     return o
 end
 
-local tempMat3 = Mat3:new()
-
 ---Updates the object's position and/or rotation. If you already calculated the
 ---viewMatrix elsewhere, you can pass that in too to avoid re-calculating it here.
----@param props OrientedObject.P
-function OrientedObject:update(props)
-    self:_update(props)
-    self:onUpdate(props)
-end
+---@type fun(self: OrientedObject, props: OrientedObject.P)
+OrientedObject.update = Updatable.update
+
+local tempMat3 = Mat3:new()
 
 ---@protected
 ---@param props OrientedObject.P
 function OrientedObject:_update(props)
-    local viewMatRotationNeedsUpdate = self.rotation
-    local viewMatTranslationNeedsUpdate = self.position or self.rotation
-
-    for k, v in pairs(props) do
-        self[k] = v
-    end
+    Updatable._update(self, props)
 
     if not props.viewMatrix then
         -- update rotation part of view matrix
-        if viewMatRotationNeedsUpdate then
+        if props.rotation then
             tempMat3:setFromQuat(self.rotation:clone():conj())
             self.viewMatrix:setUpperMat3(tempMat3)
         end
         -- update translation part of view matrix (based on rotation part)
-        if viewMatTranslationNeedsUpdate then
+        if props.position or props.rotation then
             local m = self.viewMatrix
             m[13] = -self.position:dot(Vec3:new(m[1], m[5], m[9]))
             m[14] = -self.position:dot(Vec3:new(m[2], m[6], m[10]))
@@ -68,6 +61,7 @@ function OrientedObject:_update(props)
     end
 end
 
+---Positions `self` at `eyePos`, and rotates it to look at `targetPos`.
 ---@param eyePos Vec3
 ---@param targetPos Vec3
 ---@param up? Vec3
@@ -76,12 +70,6 @@ function OrientedObject:lookAt(eyePos, targetPos, up)
         position = eyePos,
         rotation = self.rotation:lookRotation(targetPos - eyePos, up)
     })
-end
-
----Override this if you want to run some additional code whenever :update() is called,
----e.g. for dispatching events to materials that need the updated values.
----@param props OrientedObject.P
-function OrientedObject:onUpdate(props)
 end
 
 return OrientedObject

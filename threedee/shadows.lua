@@ -13,6 +13,7 @@ standardDepthMat:compile()
 ---A regular shadow map using a single camera and an RGB-packed depth format.
 ---@class StandardShadow
 ---@field camera Camera
+---@field bias number
 ---@field shadowMapAft? ActorFrameTexture
 local StandardShadow = class('StandardShadow')
 
@@ -23,7 +24,8 @@ local StandardShadow = class('StandardShadow')
 ---@return StandardShadow
 function StandardShadow:new(props)
     local o = {
-        camera = props.camera or cameras.PerspectiveCamera:new({})
+        camera = props.camera or cameras.PerspectiveCamera:new({}),
+        bias = -0.003,
     }
     setmetatable(o, StandardShadow)
     return o
