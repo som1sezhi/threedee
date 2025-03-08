@@ -239,6 +239,21 @@ function Mat4:mulMatrices(matrixA, matrixB)
     return self
 end
 
+---@return self
+function Mat4:transpose()
+    -- 1 5 9  13
+    -- 2 6 10 14
+    -- 3 7 11 15
+    -- 4 8 12 16
+    self[2], self[5] = self[5], self[2]
+    self[3], self[9] = self[9], self[3]
+    self[4], self[13] = self[13], self[4]
+    self[7], self[10] = self[10], self[7]
+    self[8], self[14] = self[14], self[8]
+    self[12], self[15] = self[15], self[12]
+    return self
+end
+
 ---Sets `self` to a view matrix for a camera at position `eye` looking at `at`.
 ---Be aware that this gives a view matrix, not a world matrix for the camera/any other object.
 ---@param eye Vec3 camera position

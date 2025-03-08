@@ -1,4 +1,8 @@
-local class = require "threedee.class"
+local class = require 'threedee.class'
+
+local cos = math.cos
+local sin = math.sin
+
 ---@class Mat3
 ---@field [1] number
 ---@field [2] number
@@ -117,6 +121,122 @@ function Mat3:setFromQuat(q)
     return self
 end
 
+---@param euler Euler
+---@return self
+function Mat3:setFromEuler(euler)
+    -- from three.js
+    -- https://github.com/mrdoob/three.js/blob/c6620cee323838ead14035b37008f401edbc2ea1/src/math/Matrix4.js#L318
+    local x, y, z, order = euler[1], euler[2], euler[3], euler.order
+    local a, b, c, d, e, f = cos(x), sin(x), cos(y), sin(y), cos(z), sin(z)
+
+    if order == 'zyx' then
+        local ae, af, be, bf = a * e, a * f, b * e, b * f
+
+        self[1] = c * e
+        self[4] = be * d - af
+        self[7] = ae * d + bf
+
+        self[2] = c * f
+        self[5] = bf * d + ae
+        self[8] = af * d - be
+
+        self[3] = - d
+        self[6] = b * c
+        self[9] = a * c
+    elseif order == 'xyz' then
+        local ae, af, be, bf = a * e, a * f, b * e, b * f
+
+        self[1] = c * e
+        self[4] = - c * f
+        self[7] = d
+
+        self[2] = af + be * d
+        self[5] = ae - bf * d
+        self[8] = - b * c
+
+        self[3] = bf - ae * d
+        self[6] = be + af * d
+        self[9] = a * c
+    elseif order == 'yxz' then
+        local ce, cf, de, df = c * e, c * f, d * e, d * f
+
+        self[1] = ce + df * b
+        self[4] = de * b - cf
+        self[7] = a * d
+
+        self[2] = a * f
+        self[5] = a * e
+        self[8] = - b
+
+        self[3] = cf * b - de
+        self[6] = df + ce * b
+        self[9] = a * c
+    elseif order == 'zxy' then
+        local ce, cf, de, df = c * e, c * f, d * e, d * f
+
+        self[1] = ce - df * b
+        self[4] = - a * f
+        self[7] = de + cf * b
+
+        self[2] = cf + de * b
+        self[5] = a * e
+        self[8] = df - ce * b
+
+        self[3] = - a * d
+        self[6] = b
+        self[9] = a * c
+    elseif order == 'yzx' then
+        local ac, ad, bc, bd = a * c, a * d, b * c, b * d
+
+        self[1] = c * e
+        self[4] = bd - ac * f
+        self[7] = bc * f + ad
+
+        self[2] = f
+        self[5] = a * e
+        self[8] = - b * e
+
+        self[3] = - d * e
+        self[6] = ad * f + bc
+        self[9] = ac - bd * f
+    elseif order == 'xzy' then
+        local ac, ad, bc, bd = a * c, a * d, b * c, b * d
+
+        self[1] = c * e
+        self[4] = - f
+        self[7] = d * e
+
+        self[2] = ac * f + bd
+        self[5] = a * e
+        self[8] = ad * f - bc
+
+        self[3] = bc * f - ad
+        self[6] = b * e
+        self[9] = bd * f + ac
+    end
+    return self
+end
+
+---Sets `self` to the rotation matrix specified by `axis` and `angle`.
+---Note that positive angles go clockwise when viewing in the positive direction
+---of the axis (e.g. looking rightwards for the X axis).
+---@param axis Vec3 axis of rotation (unit vector)
+---@param angle number angle (radians)
+---@return self
+function Mat3:setFromAxisAngle(axis, angle)
+    -- from three.js and https://www.gamedev.net/reference/articles/article1199.asp
+    axis = axis:clone():normalize()
+    local x, y, z = axis[1], axis[2], axis[3]
+    local c, s = cos(angle), sin(angle)
+    local t = 1 - c
+    local tx, ty = t * x, t * y
+    return self:set(
+        tx*x + c, tx*y + s*z, tx*z - s*y,
+        tx*y - s*z, ty*y + c, ty*z + s*x,
+        tx*z + s*y, ty*z - s*x, t*z*z + c
+    )
+end
+
 ---@param row1 Vec3
 ---@param row2 Vec3
 ---@param row3 Vec3
@@ -207,6 +327,14 @@ function Mat3:mulMatrices(matrixA, matrixB)
     self[7] = a11*b13 + a12*b23 + a13*b33
     self[8] = a21*b13 + a22*b23 + a23*b33
     self[9] = a31*b13 + a32*b23 + a33*b33
+    return self
+end
+
+---@return self
+function Mat3:transpose()
+    self[2], self[4] = self[4], self[2]
+    self[3], self[7] = self[7], self[3]
+    self[6], self[8] = self[8], self[6]
     return self
 end
 

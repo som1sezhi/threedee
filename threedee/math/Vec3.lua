@@ -194,7 +194,7 @@ function Vec3.__unm(a)
 end
 
 function Vec3:__tostring()
-    return 'vec3(' .. self[1] .. ',' .. self[2] .. ',' .. self[3] .. ')'
+    return 'Vec3(' .. self[1] .. ',' .. self[2] .. ',' .. self[3] .. ')'
 end
 
 return Vec3

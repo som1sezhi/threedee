@@ -189,4 +189,8 @@ function Vec4.__unm(a)
     return a:clone():neg()
 end
 
+function Vec4:__tostring()
+    return 'Vec4(' .. self[1] .. ',' .. self[2] .. ',' .. self[3] .. ',' .. self[4] .. ')'
+end
+
 return Vec4
