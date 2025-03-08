@@ -25,6 +25,7 @@ local PubSub = require 'threedee.PubSub'
 ---@field lights SceneLights
 ---@field pub PubSub
 ---@field doShadows boolean
+---@field shadowMapFilter 'none'|'pcf_simple'|'pcf_bilinear'
 ---@field background Vec3|RageTexture|EnvMap
 ---@field backgroundRotation Mat3
 ---@field backgroundIntensity number
@@ -60,6 +61,7 @@ function Scene:new(aframe, camera)
         pub = PubSub:new(),
 
         doShadows = false,
+        shadowMapFilter = 'pcf_simple',
         background = Vec3:new(0, 0, 0),
         backgroundRotation = Mat3:new(),
         backgroundIntensity = 1,

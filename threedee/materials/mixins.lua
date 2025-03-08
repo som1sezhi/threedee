@@ -293,6 +293,7 @@ mixins.LightsMixin = {
         end
         self.shader:define('NUM_SPOT_LIGHT_COLOR_MAPS', tostring(colorMapCount))
 
+        self.shader:define('SHADOWMAP_FILTER_' .. string.upper(scene.shadowMapFilter))
     end,
 
     onBeforeFirstDraw = function(self, scene)
