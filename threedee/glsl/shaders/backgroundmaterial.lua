@@ -40,16 +40,17 @@ void main() {
     vec3 col = color;
     #if defined(USE_COLOR_MAP)
         vec2 uv = gl_FragCoord.xy / displayResolution;
-        uv = img2tex(uv, colorMapTextureSize, colorMapImageSize).rgb;
-        col = texture2D(colorMap, uv);
+        uv = img2tex(uv, colorMapTextureSize, colorMapImageSize);
+        col = srgb2Linear(texture2D(colorMap, uv).rgb);
     #elif defined(USE_ENV_MAP)
         // XXX: there's a visible seam when using
         // envmaps with mipmaps, due to UV discontinuity causing
         // mipmap derivatives to go wacky
         vec2 uv = getEnvMapUV(normalize(vDirection));
-        col = texture2D(envMap, uv).rgb;
+        col = srgb2Linear(texture2D(envMap, uv).rgb);
     #endif
     col *= intensity;
+    col = linear2Srgb(col);
     
     gl_FragColor = vec4(col, 1.0);
 }
