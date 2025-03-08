@@ -9,12 +9,14 @@ local AlphaMixin = mixins.AlphaMixin
 ---@field scene Scene
 local SceneActor = class('SceneActor')
 
----@generic A : SceneActor
+---@generic A: SceneActor
 ---@param self A
 ---@param actor Actor
 ---@return A
 function SceneActor.new(self, actor)
-    local o = { actor = actor }
+    local o = {
+        actor = actor
+    }
     return setmetatable(o, self)
 end
 
@@ -141,6 +143,8 @@ end
 ---A SceneActor associated with a material.
 ---@class ActorWithMaterial: SceneActor
 ---@field material Material
+---@field castShadows boolean
+---@field receiveShadows boolean
 local ActorWithMaterial = class('ActorWithMaterial', SceneActor)
 
 ---@generic A: ActorWithMaterial
@@ -151,6 +155,8 @@ local ActorWithMaterial = class('ActorWithMaterial', SceneActor)
 function ActorWithMaterial:new(actor, material)
     local o = SceneActor.new(self, actor)
     o.material = material
+    o.castShadows = false
+    o.receiveShadows = false
     return o
 end
 
@@ -171,12 +177,16 @@ end
 
 ---A Sprite, Model, or Polygon associated with a material.
 ---@class MeshActor: ActorWithMaterial
+---@field cullMode 'none'|'front'|'back'
+---@field shadowCullMode 'none'|'front'|'back'
 local MeshActor = class('MeshActor', ActorWithMaterial)
 
 ---@param actor Sprite | Model | Polygon | MeshActor
 ---@param material Material
 function MeshActor:new(actor, material)
     local o = ActorWithMaterial.new(self, actor, material)
+    o.shadowCullMode = 'none'
+    o.cullMode = 'back'
     actor:zbuffer(1)
     actor:zwrite(1)
     actor:ztestmode('writeonpass')
@@ -190,11 +200,15 @@ end
 
 function MeshActor:Draw()
     if self.scene._isDrawingShadowMap then
-        local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
-        self:_prepareOverrideMaterialAlpha(depthMat)
-        self.actor:Draw()
+        if self.castShadows then
+            local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
+            self:_prepareOverrideMaterialAlpha(depthMat)
+            self.actor:cullmode(self.shadowCullMode)
+            self.actor:Draw()
+        end
     else
         self.material:onBeforeDraw(self)
+        self.actor:cullmode(self.cullMode)
         self.actor:Draw()
     end
 end
@@ -230,9 +244,11 @@ end
 
 function NoteFieldProxy:Draw()
     if self.scene._isDrawingShadowMap then
-        local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
-        self:_prepareOverrideMaterialAlpha(depthMat)
-        self.actor:Draw()
+        if self.castShadows then
+            local depthMat = self.scene._overrideMaterial --[[@as DepthMaterial]]
+            self:_prepareOverrideMaterialAlpha(depthMat)
+            self.actor:Draw()
+        end
     else
         DISPLAY:ShaderFuck(self.material.shader)
         self.material:onBeforeDraw(self)

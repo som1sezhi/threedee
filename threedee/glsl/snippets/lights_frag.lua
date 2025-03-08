@@ -84,7 +84,7 @@ return {
             attenuation *= clamp((theta - light.cosAngle) / epsilon, 0.0, 1.0);
 
             #if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
-                if (i < NUM_SPOT_LIGHT_SHADOWS && attenuation > 0.0 && doShadows) {
+                if (i < NUM_SPOT_LIGHT_SHADOWS && attenuation > 0.0) {
                     vec3 projCoord = calcShadowProjCoord(
                         spotLightSpacePos[i], spotLightShadows[i]
                     );

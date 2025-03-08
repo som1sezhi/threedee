@@ -396,8 +396,11 @@ mixins.LightsMixin = {
         end
     end,
 
-    onFrameStart = function(self, scene)
-        self.shader:uniform1i('doShadows', scene.doShadows and 1 or 0)
+    onBeforeDraw = function (self, act)
+        self.shader:uniform1i(
+            'doShadows',
+            (act.scene.doShadows and act.receiveShadows) and 1 or 0
+        )
     end,
 
     listeners = {
