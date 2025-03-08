@@ -1,10 +1,10 @@
 <Layer Type="ActorFrame"><children>
-	<!--
-		To create a 3D scene, first create an ActorFrame containing
-		all the actors in the scene.
-	-->
-	<Layer Type="ActorFrame" Name="world"><children>
-		<Layer File="cube.obj" Name="cube" />
-		<Layer Type="ActorProxy" Name="notefield" />
-	</children></Layer>
+    <!--
+        To create a 3D scene, first create an ActorFrame containing
+        all the actors in the scene.
+    -->
+    <Layer Type="ActorFrame" Name="world"><children>
+        <Layer File="cube.obj" Name="cube" />
+        <Layer Type="ActorProxy" Name="notefield" />
+    </children></Layer>
 </children></Layer>
