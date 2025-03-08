@@ -44,7 +44,13 @@ void main() {
     #include <alpha_frag>
     #include <alphamap_frag>
     #include <alphadiscard_frag>
-    gl_FragColor = vec4(packDepthToRGB(depth), alpha);
+    #if defined(PACK_FORMAT_RGB)
+        gl_FragColor = vec4(packDepthToRGB(depth), alpha);
+    #elif defined(PACK_FORMAT_RG)
+        gl_FragColor = vec4(packDepthToRG(depth), 0.0, alpha);
+    #else
+        gl_FragColor = vec4(vec3(depth), alpha);
+    #endif
 }
 ]]
 

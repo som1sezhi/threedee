@@ -189,8 +189,6 @@ function Scene:finalize()
             colorMapIndex = colorMapIndex + 1
         end
     end
-    print(#lights.spotLightShadows, lights.numSpotLightColorMaps, lights.numSpotLightMatrices,
-    lights.numSpotLightColorMaps-(lights.numSpotLightMatrices - #lights.spotLightShadows))
 
     for _, material in ipairs(self.materials) do
         material:compile(self)

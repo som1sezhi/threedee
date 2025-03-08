@@ -8,6 +8,7 @@ local standardDepthMat = DepthMaterial:new({
     shader = actors.depthMatActor:GetShader() --[[@as RageShaderProgram]]
 })
 standardDepthMat.alphaTest = 0.5
+standardDepthMat.packingFormat = 'rgb'
 ---@diagnostic disable-next-line: missing-parameter
 standardDepthMat:compile()
 
