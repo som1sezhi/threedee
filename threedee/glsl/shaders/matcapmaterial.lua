@@ -2,6 +2,7 @@ local preprocess = require 'threedee.glsl.preprocess'
 
 local vert = [[#version 120
 #line 2 10013
+#include <colorspaces>
 #include <position_vert_defs>
 #include <posvaryings_vert_defs>
 #include <normal_vert_defs>

@@ -101,10 +101,11 @@ mixins.AlphaMixin = {
 ---@field color Vec3
 ---@field colorMap RageTexture|'sampler0'|false
 ---@field useVertexColors boolean
+---@field vertexColorInterpolation 'srgb'|'linear'
 
 ---Handles base color, color maps, and vertex colors.
 ---
----Defined fields: `color: Vec3`, `colorMap: RageTexture|'sampler0'|false`, `useVertexColors: boolean`
+---Defined fields: `color: Vec3`, `colorMap: RageTexture|'sampler0'|false`, `useVertexColors: boolean`, `vertexColorInterpolation: 'srgb'|'linear'`
 ---
 ---Associated snippets: `<color_*>`
 mixins.ColorMixin = {
@@ -113,6 +114,7 @@ mixins.ColorMixin = {
         self.color = self.color or Vec3:new(1, 1, 1)
         self.colorMap = self.colorMap or false
         self.useVertexColors = self.useVertexColors or false
+        self.vertexColorInterpolation = self.vertexColorInterpolation or 'linear'
     end,
 
     setDefines = function(self)
@@ -120,6 +122,10 @@ mixins.ColorMixin = {
         self:_defineFlag('USE_COLOR_MAP', self.colorMap)
         self:_defineFlag('USE_COLOR_MAP_SAMPLER0', self.colorMap == 'sampler0')
         self:_defineFlag('USE_VERTEX_COLORS', self.useVertexColors)
+        self:_defineFlag(
+            'VERTEX_COLORS_INTERPOLATE_LINEAR',
+            self.vertexColorInterpolation == 'linear'
+        )
     end,
 
     changeFuncs = {

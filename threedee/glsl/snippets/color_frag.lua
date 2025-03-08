@@ -2,7 +2,11 @@ return {
     snippet = [[
     vec3 fragBaseColor = color;
     #ifdef USE_VERTEX_COLORS
-        fragBaseColor *= srgb2Linear(vColor.rgb);
+        #ifdef VERTEX_COLORS_INTERPOLATE_LINEAR
+            fragBaseColor *= vColor.rgb;
+        #else
+            fragBaseColor *= srgb2Linear(vColor.rgb);
+        #endif
         alpha *= vColor.a;
     #endif
     #ifdef USE_COLOR_MAP

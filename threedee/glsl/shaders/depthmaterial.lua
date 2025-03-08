@@ -6,6 +6,7 @@ local vert = [[#version 120
 #define USE_VERTEX_COLORS
 
 #include <utils>
+#include <colorspaces>
 #include <position_vert_defs>
 #include <texcoord_vert_defs>
 #include <color_vert_defs>
