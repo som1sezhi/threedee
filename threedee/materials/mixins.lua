@@ -292,12 +292,8 @@ mixins.LightsMixin = {
         self.shader:define('NUM_SPOT_LIGHTS', tostring(#scene.lights.spotLights))
         self.shader:define('NUM_SPOT_LIGHT_SHADOWS', tostring(#scene.lights.spotLightShadows))
 
-        local colorMapCount = 0
-        for i, light in ipairs(scene.lights.spotLights) do
-            if not (light.colorMap and light.castShadows) then break end
-            colorMapCount = i
-        end
-        self.shader:define('NUM_SPOT_LIGHT_COLOR_MAPS', tostring(colorMapCount))
+        self.shader:define('NUM_SPOT_LIGHT_COLOR_MAPS', tostring(scene.lights.numSpotLightColorMaps))
+        self.shader:define('NUM_SPOT_LIGHT_MATRICES', tostring(scene.lights.numSpotLightMatrices))
 
         self.shader:define('SHADOWMAP_FILTER_' .. string.upper(scene.shadowMapFilter))
     end,
@@ -343,8 +339,13 @@ mixins.LightsMixin = {
             dispatchToSelf('spotLightProp', { idx, 'float', 'cosInnerAngle', cosInnerAngle })
             dispatchToSelf('spotLightProp', { idx, 'float', 'linearAttenuation', light.linearAttenuation })
             dispatchToSelf('spotLightProp', { idx, 'float', 'quadraticAttenuation', light.quadraticAttenuation })
-            if light.castShadows and light.colorMap then
-                dispatchToSelf('spotLightColorMap', { index = idx, value = light.colorMap })
+            if light.colorMap then
+                dispatchToSelf('spotLightColorMap', { index = light.colorMapIndex, value = light.colorMap })
+            end
+            if light.colorMap or light.castShadows then
+                dispatchToSelf('spotLightShadowMatrix',
+                    { index = idx, value = light.shadow.camera.projMatrix * light.shadow.camera.viewMatrix }
+                )
             end
         end
 
@@ -376,9 +377,6 @@ mixins.LightsMixin = {
         for i, shadow in ipairs(scene.lights.spotLightShadows) do
             local idx = i - 1
             local camera = shadow.camera
-            dispatchToSelf('spotLightShadowMatrix',
-                { index = idx, value = camera.projMatrix * camera.viewMatrix }
-            )
             dispatchToSelf('spotLightShadowProp', { idx, 'float', 'nearDist', camera.nearDist })
             dispatchToSelf('spotLightShadowProp', { idx, 'float', 'farDist', camera.farDist })
             dispatchToSelf('spotLightShadowProp', { idx, 'float', 'bias', shadow.bias })

@@ -10,8 +10,8 @@ return {
             dirLightSpacePos[i] = dirLightMatrices[i] * worldPos;
         }
     #endif
-    #if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
-        for (int i = 0; i < NUM_SPOT_LIGHT_SHADOWS; i++) {
+    #if defined(NUM_SPOT_LIGHT_MATRICES) && NUM_SPOT_LIGHT_MATRICES > 0
+        for (int i = 0; i < NUM_SPOT_LIGHT_MATRICES; i++) {
             spotLightSpacePos[i] = spotLightMatrices[i] * worldPos;
         }
     #endif

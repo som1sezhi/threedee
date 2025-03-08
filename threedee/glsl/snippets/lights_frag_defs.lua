@@ -52,11 +52,13 @@ struct ShadowInfo {
     };
     uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
 #endif
-#if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
-    varying vec4 spotLightSpacePos[NUM_SPOT_LIGHT_SHADOWS];
+#if defined(NUM_SPOT_LIGHT_MATRICES) && NUM_SPOT_LIGHT_MATRICES > 0
+    varying vec4 spotLightSpacePos[NUM_SPOT_LIGHT_MATRICES];
 
-    uniform sampler2D spotLightShadowMaps[NUM_SPOT_LIGHT_SHADOWS];
-    uniform ShadowInfo spotLightShadows[NUM_SPOT_LIGHT_SHADOWS];
+    #if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
+        uniform sampler2D spotLightShadowMaps[NUM_SPOT_LIGHT_SHADOWS];
+        uniform ShadowInfo spotLightShadows[NUM_SPOT_LIGHT_SHADOWS];
+    #endif
     
     #if defined(NUM_SPOT_LIGHT_COLOR_MAPS) && NUM_SPOT_LIGHT_COLOR_MAPS > 0
         uniform sampler2D spotLightColorMaps[NUM_SPOT_LIGHT_COLOR_MAPS];

@@ -83,22 +83,39 @@ return {
             float epsilon = light.cosInnerAngle - light.cosAngle;
             attenuation *= clamp((theta - light.cosAngle) / epsilon, 0.0, 1.0);
 
-            #if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
-                if (i < NUM_SPOT_LIGHT_SHADOWS && attenuation > 0.0) {
-                    vec3 projCoord = calcShadowProjCoord(
-                        spotLightSpacePos[i], spotLightShadows[i]
-                    );
-                    if (doShadows) {
-                        float shadow = calcShadow(
-                            projCoord,
-                            spotLightShadowMaps[i],
-                            spotLightShadows[i]
+            #if defined(NUM_SPOT_LIGHT_MATRICES) && NUM_SPOT_LIGHT_MATRICES > 0
+                if (i < NUM_SPOT_LIGHT_MATRICES && attenuation > 0.0) {
+                    #if defined(NUM_SPOT_LIGHT_SHADOWS) && NUM_SPOT_LIGHT_SHADOWS > 0
+                        vec3 projCoord = calcShadowProjCoord(
+                            spotLightSpacePos[i], spotLightShadows[i]
                         );
-                        attenuation *= (1.0 - shadow);
-                    }
+                        if (i < NUM_SPOT_LIGHT_SHADOWS && doShadows) {
+                            float shadow = calcShadow(
+                                projCoord,
+                                spotLightShadowMaps[i],
+                                spotLightShadows[i]
+                            );
+                            attenuation *= (1.0 - shadow);
+                        }
+                    #else
+                        vec2 projCoord = spotLightSpacePos[i].xy / spotLightSpacePos[i].w;
+                    #endif
                     #if defined(NUM_SPOT_LIGHT_COLOR_MAPS) && NUM_SPOT_LIGHT_COLOR_MAPS > 0
-                        if (i < NUM_SPOT_LIGHT_COLOR_MAPS) {
-                            incomingLight *= texture2D(spotLightColorMaps[i], projCoord.xy * 0.5 + 0.5).rgb;
+                        #ifndef NUM_SPOT_LIGHT_SHADOWS
+                            #define NUM_SPOT_LIGHT_SHADOWS 0
+                        #endif
+                        #define NUM_COLOR_MAPS_WITHOUT_SHADOW (NUM_SPOT_LIGHT_MATRICES - NUM_SPOT_LIGHT_SHADOWS)
+                        #define NUM_COLOR_MAPS_WITH_SHADOW (NUM_SPOT_LIGHT_COLOR_MAPS - NUM_COLOR_MAPS_WITHOUT_SHADOW)
+                        if (i < NUM_COLOR_MAPS_WITH_SHADOW) {
+                            incomingLight *= texture2D(
+                                spotLightColorMaps[i],
+                                projCoord.xy * 0.5 + 0.5
+                            ).rgb;
+                        } else if (i >= NUM_SPOT_LIGHT_SHADOWS) {
+                            incomingLight *= texture2D(
+                                spotLightColorMaps[NUM_COLOR_MAPS_WITH_SHADOW + (i - NUM_SPOT_LIGHT_SHADOWS)],
+                                projCoord.xy * 0.5 + 0.5
+                            ).rgb;
                         }
                     #endif
                 }

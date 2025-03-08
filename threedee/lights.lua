@@ -264,6 +264,7 @@ DirLight.update = Light.update
 
 ---@class SpotLight: Light
 ---@field index number
+---@field colorMapIndex number
 ---@field linearAttenuation number
 ---@field quadraticAttenuation number
 ---@field castShadows boolean
@@ -285,6 +286,7 @@ local SpotLight = class('SpotLight', Light)
 function SpotLight:new(color, intensity, position, rotation, angle, penumbra)
     local o = Light.new(self, color, intensity, position, rotation)
     o.index = -1
+    o.colorMapIndex = -1
     o.castShadows = false
     o.linearAttenuation = 0
     o.quadraticAttenuation = 0.000002
@@ -356,27 +358,17 @@ function SpotLight:linkWithScene(scene)
         end
     end
 
-    if self.castShadows then
-        ---@param selfS StandardShadow
-        ---@param props StandardShadow.P
-        self.shadow.onUpdate = function(selfS, props)
-            local idx = self.index
-            if props.bias then
-                scene.pub:sendMessage(
-                    'spotLightShadowProp',
-                    { idx, 'float', 'bias', selfS.bias }
-                )
-            end
-        end
-
-        ---@param selfC Camera
-        ---@param props Camera.P
-        self.shadow.camera.onUpdate = function(selfC, props)
-            local idx = self.index
+    ---@param selfC Camera
+    ---@param props Camera.P
+    self.shadow.camera.onUpdate = function(selfC, props)
+        local idx = self.index
+        if self.castShadows or self.colorMap then
             scene.pub:sendMessage(
                 'spotLightShadowMatrix',
                 { index = idx, value = selfC.projMatrix * selfC.viewMatrix }
             )
+        end
+        if self.castShadows then
             if props.nearDist then
                 scene.pub:sendMessage(
                     'spotLightShadowProp',
@@ -387,6 +379,20 @@ function SpotLight:linkWithScene(scene)
                 scene.pub:sendMessage(
                     'spotLightShadowProp',
                     { idx, 'float', 'farDist', selfC.farDist }
+                )
+            end
+        end
+    end
+
+    if self.castShadows then
+        ---@param selfS StandardShadow
+        ---@param props StandardShadow.P
+        self.shadow.onUpdate = function(selfS, props)
+            local idx = self.index
+            if props.bias then
+                scene.pub:sendMessage(
+                    'spotLightShadowProp',
+                    { idx, 'float', 'bias', selfS.bias }
                 )
             end
         end

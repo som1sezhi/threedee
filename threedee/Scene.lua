@@ -16,6 +16,8 @@ local PubSub = require 'threedee.PubSub'
 ---@field dirLightShadows StandardShadow[]
 ---@field spotLights SpotLight[]
 ---@field spotLightShadows StandardShadow[]
+---@field numSpotLightColorMaps number
+---@field numSpotLightMatrices number
 
 ---@class Scene: Updatable
 ---@field aframe ActorFrame
@@ -56,6 +58,8 @@ function Scene:new(aframe, camera)
             dirLightShadows = {},
             spotLights = {},
             spotLightShadows = {},
+            numSpotLightColorMaps = 0,
+            numSpotLightMatrices = 0
         },
 
         pub = PubSub:new(),
@@ -133,16 +137,25 @@ function Scene:finalize()
     self.camera:linkWithScene(self)
 
     -- sort such that shadow-casting lights come first
-    local function sortFunc(a, b) return a.castShadows end
+    local function sortFunc(a, b) return a.castShadows and not b.castShadows end
     table.sort(lights.pointLights, sortFunc)
     table.sort(lights.dirLights, sortFunc)
     -- sort spotlights with colormaps first
     table.sort(lights.spotLights, function(a, b)
         if a.castShadows == b.castShadows then
-            return a.colorMap and true or false
+            return (a.colorMap and not b.colorMap) and true or false
         end
         return a.castShadows
     end)
+
+    -- collect counts
+    for i, light in ipairs(lights.spotLights) do
+        if not (light.colorMap or light.castShadows) then break end
+        if light.colorMap then
+            lights.numSpotLightColorMaps = lights.numSpotLightColorMaps + 1
+        end
+        lights.numSpotLightMatrices = i
+    end
 
     for _, light in ipairs(lights.ambientLights) do
         light:linkWithScene(self)
@@ -163,6 +176,7 @@ function Scene:finalize()
             light.shadow.shadowMapAft = actors.getShadowMapAft()
         end
     end
+    local colorMapIndex = 0
     for i, light in ipairs(lights.spotLights) do
         light.index = i - 1
         light:linkWithScene(self)
@@ -170,7 +184,13 @@ function Scene:finalize()
             table.insert(self.lights.spotLightShadows, light.shadow)
             light.shadow.shadowMapAft = actors.getShadowMapAft()
         end
+        if light.colorMap then
+            light.colorMapIndex = colorMapIndex
+            colorMapIndex = colorMapIndex + 1
+        end
     end
+    print(#lights.spotLightShadows, lights.numSpotLightColorMaps, lights.numSpotLightMatrices,
+    lights.numSpotLightColorMaps-(lights.numSpotLightMatrices - #lights.spotLightShadows))
 
     for _, material in ipairs(self.materials) do
         material:compile(self)
