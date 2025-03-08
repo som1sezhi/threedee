@@ -2,6 +2,8 @@
 
 `threedee` is a Mirin Template plugin for making it easier to do 3D stuff in NotITG modfiles. Its API is heavily inspired by [three.js](https://threejs.org/).
 
+NotITG already has pretty good 3D capabilities. If all you need is some 3D stuff with colors and textures, this plugin is probably pretty overkill. But if you want actual materials with lighting and other fancy stuff, this plugin can make that easier.
+
 ## Usage
 
 - Download the repository (you can do this by clicking the green "Code" button above the file listing, then clicking "Download ZIP")
