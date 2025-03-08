@@ -69,7 +69,7 @@ function Scene:new(aframe, camera)
         background = Vec3:new(0, 0, 0),
         backgroundRotation = Mat3:new(),
         backgroundIntensity = 1,
-        drawBackgroundFirst = false,
+        drawBackgroundFirst = true,
 
         _isDrawingShadowMap = false,
         _firstDraw = true,

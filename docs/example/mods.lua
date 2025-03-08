@@ -1,33 +1,4 @@
-# threedee
-
-`threedee` is a Mirin Template plugin for making it easier to do 3D stuff in NotITG modfiles. Its API is heavily inspired by [three.js](https://threejs.org/).
-
-## Usage
-
-- Download the repository (you can do this by clicking the green "Code" button above the file listing, then clicking "Download ZIP")
-- Place `threedee.xml` and the `threedee` folder into the Mirin Template plugins folder
-- In your `mods.lua`, do something like `local td = require 'threedee'` and use the threedee library via `td`
-
-## Example
-
-`layout.xml`:
-
-```xml
-<Layer Type="ActorFrame"><children>
-    <!--
-        To create a 3D scene, first create an ActorFrame containing
-        all the actors in the scene.
-    -->
-    <Layer Type="ActorFrame" Name="world"><children>
-        <Layer File="cube.obj" Name="cube" />
-        <Layer Type="ActorProxy" Name="notefield" />
-    </children></Layer>
-</children></Layer>
-```
-
-`mods.lua`:
-
-```lua
+---@diagnostic disable: lowercase-global
 if not P1 or not P2 then
 	backToSongWheel('Two Player Mode Required')
 	return
@@ -139,13 +110,3 @@ perframe {0, 64, function(beat)
 		color = td.color(1, 0, math.sin(beat*2)*0.5+0.5)
 	}
 end}
-```
-
-You can check out these example files for yourself (including the `cube.obj`)
-in `docs/example`.
-
-## Documentation
-
-Currently documentation is pretty nonexistent (sorry about that). In the
-meantime, you can look through the code to see what you can do, though
-I understand that this isn't exactly a good replacement for documentation lmao
