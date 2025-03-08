@@ -39,6 +39,9 @@ local frag = [[#version 120
 #include <envmap_frag_defs>
 
 uniform vec3 emissive;
+#ifdef USE_EMISSIVE_MAP
+    uniform sampler2D emissiveMap;
+#endif
 
 void main() {
     #include <alpha_frag>
@@ -49,7 +52,11 @@ void main() {
     #include <lights_frag>
     #include <envmap_frag>
 
-    outgoingLight += emissive;
+    #ifdef USE_EMISSIVE_MAP
+        outgoingLight += emissive * texture2D(emissiveMap, vTextureCoord).rgb;
+    #else
+        outgoingLight += emissive;
+    #endif
     outgoingLight = linear2Srgb(outgoingLight);
     gl_FragColor = vec4(outgoingLight, alpha);
 }

@@ -1,6 +1,9 @@
 return {
     snippet = [[
 uniform vec3 specular;
+#ifdef USE_SPECULAR_MAP
+    uniform sampler2D specularMap;
+#endif
 uniform float shininess;
 
 struct Material {
