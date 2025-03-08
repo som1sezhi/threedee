@@ -69,6 +69,12 @@ function StandardShadow:drawShadowMap(scene)
     scene.camera = oldCamera
 end
 
+---@class StandardPerspectiveShadow: StandardShadow
+---@field camera PerspectiveCamera
+
+---@class StandardOrthographicShadow: StandardShadow
+---@field camera OrthographicCamera
+
 return {
     StandardShadow = StandardShadow,
     standardDepthMat = standardDepthMat

@@ -42,6 +42,10 @@ function Camera:linkWithScene(scene)
     end
 end
 
+---Force-update the projection matrix.
+function Camera:updateProjMatrix()
+end
+
 --------------------------------------------------------------------------------
 
 ---@class PerspectiveCamera: Camera
@@ -62,7 +66,7 @@ function PerspectiveCamera:new(attrs)
     })
     o.fov = attrs.fov or math.rad(45)
     o.aspectRatio = attrs.aspectRatio or SCREEN_WIDTH / SCREEN_HEIGHT
-    o:_updateProjMatrix()
+    o:updateProjMatrix()
     return o
 end
 
@@ -73,12 +77,13 @@ PerspectiveCamera.update = OrientedObject.update
 function PerspectiveCamera:_update(props)
     OrientedObject._update(self, props)
     if props.fov or props.aspectRatio or props.nearDist or props.farDist then
-        self:_updateProjMatrix()
+        self:updateProjMatrix()
         self._projMatWasUpdated = true
     end
 end
 
-function PerspectiveCamera:_updateProjMatrix()
+---Force-update the projection matrix.
+function PerspectiveCamera:updateProjMatrix()
     self.projMatrix:perspective(
         self.fov, self.aspectRatio, self.nearDist, self.farDist
     )
@@ -108,7 +113,7 @@ function OrthographicCamera:new(attrs)
     o.right = attrs.right or SCREEN_CENTER_X
     o.top = attrs.top or -SCREEN_CENTER_Y -- SCREEN_HEIGHT / 2
     o.bottom = attrs.bottom or SCREEN_CENTER_Y
-    o:_updateProjMatrix()
+    o:updateProjMatrix()
     return o
 end
 
@@ -119,12 +124,13 @@ OrthographicCamera.update = OrientedObject.update
 function OrthographicCamera:_update(props)
     OrientedObject._update(self, props)
     if props.left or props.right or props.top or props.bottom or props.nearDist or props.farDist then
-        self:_updateProjMatrix()
+        self:updateProjMatrix()
         self._projMatWasUpdated = true
     end
 end
 
-function OrthographicCamera:_updateProjMatrix()
+---Force-update the projection matrix.
+function OrthographicCamera:updateProjMatrix()
     self.projMatrix:orthographic(
         self.left, self.right, self.top, self.bottom, self.nearDist, self.farDist
     )

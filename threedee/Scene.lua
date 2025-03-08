@@ -85,6 +85,7 @@ function Scene:new(aframe, camera)
     return o
 end
 
+---@private
 function Scene:_addMaterial(material)
     -- don't add material if already in material tables
     local shouldAddMaterial = true
@@ -235,6 +236,34 @@ end
 
 function Scene:draw()
     if self._firstDraw then
+        -- ensure camera matrices are updated
+        self.camera:updateViewMatrix()
+        self.camera:updateProjMatrix()
+
+        -- ensure lights' matrices are updated
+        -- these update calls should also update the light's shadow camera
+        for _, light in ipairs(self.lights.pointLights) do
+            light:update({ position = light.position, rotation = light.rotation })
+        end
+        for _, light in ipairs(self.lights.dirLights) do
+            light:update({ position = light.position, rotation = light.rotation })
+        end
+        for _, light in ipairs(self.lights.spotLights) do
+            light:update({ position = light.position, rotation = light.rotation })
+        end
+        -- we still need to ensure the projection matrices for the shadow cameras
+        -- are updated though
+        for _, shadow in ipairs(self.lights.pointLightShadows) do
+            shadow.camera:updateProjMatrix()
+        end
+        for _, shadow in ipairs(self.lights.dirLightShadows) do
+            shadow.camera:updateProjMatrix()
+        end
+        for _, shadow in ipairs(self.lights.spotLightShadows) do
+            shadow.camera:updateProjMatrix()
+        end
+
+        -- ensure materials are ready
         for _, material in ipairs(self.materials) do
             material:onBeforeFirstDraw(self)
         end

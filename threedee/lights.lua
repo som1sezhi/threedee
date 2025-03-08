@@ -86,7 +86,7 @@ AmbientLight.update = Light.update
 ---@field linearAttenuation number
 ---@field quadraticAttenuation number
 ---@field castShadows boolean
----@field shadow StandardShadow
+---@field shadow StandardPerspectiveShadow
 local PointLight = class('PointLight', Light)
 
 ---@class (partial) PointLight.P: PointLight, Light.P
@@ -97,14 +97,14 @@ function PointLight:new(color, intensity, position)
     o.linearAttenuation = 0
     o.quadraticAttenuation = 0.000002
     o.castShadows = false
-    o.shadow = shadows.StandardShadow:new{
+    o.shadow = (shadows.StandardShadow:new{
         camera = cameras.PerspectiveCamera:new({
             position = o.position,
             fov = math.rad(90),
             nearDist = 100,
             farDist = 3000,
         })
-    }
+    }) --[[@as StandardPerspectiveShadow]]
     return o
 end
 
@@ -183,7 +183,7 @@ PointLight.update = Light.update
 ---@class DirLight: Light
 ---@field index number
 ---@field castShadows boolean
----@field shadow StandardShadow
+---@field shadow StandardOrthographicShadow
 local DirLight = class('DirLight', Light)
 
 ---@class (partial) DirLight.P: DirLight, Light.P
@@ -192,12 +192,12 @@ function DirLight:new(color, intensity)
     local o = Light.new(self, color, intensity)
     o.index = -1
     o.castShadows = false
-    o.shadow = shadows.StandardShadow:new {
+    o.shadow = (shadows.StandardShadow:new {
         camera = cameras.OrthographicCamera:new({
             nearDist = 100,
             farDist = 3000,
         })
-    }
+    }) --[[@as StandardOrthographicShadow]]
     return o
 end
 
@@ -268,7 +268,7 @@ DirLight.update = Light.update
 ---@field linearAttenuation number
 ---@field quadraticAttenuation number
 ---@field castShadows boolean
----@field shadow StandardShadow
+---@field shadow StandardPerspectiveShadow
 ---@field angle number
 ---@field penumbra number
 ---@field colorMap RageTexture|false
@@ -292,7 +292,7 @@ function SpotLight:new(color, intensity, position, rotation, angle, penumbra)
     o.quadraticAttenuation = 0.000002
     o.angle = angle or math.rad(45)
     o.penumbra = penumbra or 0
-    o.shadow = shadows.StandardShadow:new {
+    o.shadow = (shadows.StandardShadow:new {
         camera = cameras.PerspectiveCamera:new({
             position = o.position,
             fov = o.angle * 2,
@@ -300,7 +300,7 @@ function SpotLight:new(color, intensity, position, rotation, angle, penumbra)
             nearDist = 100,
             farDist = 3000,
         })
-    }
+    }) --[[@as StandardPerspectiveShadow]]
     o.colorMap = false
     return o
 end

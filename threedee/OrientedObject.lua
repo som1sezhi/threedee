@@ -25,11 +25,7 @@ function OrientedObject.new(self, position, rotation)
         rotation = rotation and rotation:clone() or Quat:new(),
         viewMatrix = Mat4:new(),
     }, self)
-    -- calculate viewMatrix via update method
-    o:update({
-        position = o.position,
-        rotation = o.rotation
-    })
+    o:updateViewMatrix()
     return o
 end
 
@@ -70,6 +66,16 @@ function OrientedObject:lookAt(eyePos, targetPos, up)
         position = eyePos,
         rotation = self.rotation:lookRotation(targetPos - eyePos, up)
     })
+end
+
+---Force-update the view matrix.
+function OrientedObject:updateViewMatrix()
+    local m = self.viewMatrix
+    tempMat3:setFromQuat(self.rotation:clone():conj())
+    m:setUpperMat3(tempMat3)
+    m[13] = -self.position:dot(Vec3:new(m[1], m[5], m[9]))
+    m[14] = -self.position:dot(Vec3:new(m[2], m[6], m[10]))
+    m[15] = -self.position:dot(Vec3:new(m[3], m[7], m[11]))
 end
 
 return OrientedObject
