@@ -14,7 +14,11 @@ return {
             vec3 lightDir = light.position - vWorldPos;
             float lightDist = length(lightDir);
             lightDir /= lightDist;
-            float attenuation = 1. / (1. + 0.000002 * lightDist * lightDist);
+            float attenuation = 1. / (
+                1.
+                + light.linearAttenuation * lightDist
+                + light.quadraticAttenuation * lightDist * lightDist
+            );
 
             #if defined(NUM_POINT_LIGHT_SHADOWS) && NUM_POINT_LIGHT_SHADOWS > 0
                 if (i < NUM_POINT_LIGHT_SHADOWS && doShadows) {
@@ -69,7 +73,11 @@ return {
             vec3 lightDir = light.position - vWorldPos;
             float lightDist = length(lightDir);
             lightDir /= lightDist;
-            float attenuation = 1. / (1. + 0.000002 * lightDist * lightDist);
+            float attenuation = 1. / (
+                1.
+                + light.linearAttenuation * lightDist
+                + light.quadraticAttenuation * lightDist * lightDist
+            );
         
             float theta = dot(lightDir, -normalize(light.direction));
             float epsilon = light.cosInnerAngle - light.cosAngle;

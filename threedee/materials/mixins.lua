@@ -314,6 +314,8 @@ mixins.LightsMixin = {
             local col = light.color:clone():scale(light.intensity)
             dispatchToSelf('pointLightProp', { idx, 'vec3', 'color', col })
             dispatchToSelf('pointLightProp', { idx, 'vec3', 'position', light.position })
+            dispatchToSelf('pointLightProp', { idx, 'float', 'linearAttenuation', light.linearAttenuation })
+            dispatchToSelf('pointLightProp', { idx, 'float', 'quadraticAttenuation', light.quadraticAttenuation })
         end
         for _, light in ipairs(scene.lights.dirLights) do
             local idx = light.index
@@ -333,6 +335,8 @@ mixins.LightsMixin = {
             dispatchToSelf('spotLightProp', { idx, 'vec3', 'direction', facing })
             dispatchToSelf('spotLightProp', { idx, 'float', 'cosAngle', cosAngle })
             dispatchToSelf('spotLightProp', { idx, 'float', 'cosInnerAngle', cosInnerAngle })
+            dispatchToSelf('spotLightProp', { idx, 'float', 'linearAttenuation', light.linearAttenuation })
+            dispatchToSelf('spotLightProp', { idx, 'float', 'quadraticAttenuation', light.quadraticAttenuation })
             if light.castShadows and light.colorMap then
                 dispatchToSelf('spotLightColorMap', { index = idx, value = light.colorMap })
             end

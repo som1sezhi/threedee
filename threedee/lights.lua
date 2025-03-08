@@ -83,6 +83,8 @@ AmbientLight.update = Light.update
 
 ---@class PointLight: Light
 ---@field index number
+---@field linearAttenuation number
+---@field quadraticAttenuation number
 ---@field castShadows boolean
 ---@field shadow StandardShadow
 local PointLight = class('PointLight', Light)
@@ -92,6 +94,8 @@ local PointLight = class('PointLight', Light)
 function PointLight:new(color, intensity, position)
     local o = Light.new(self, color, intensity, position)
     o.index = -1
+    o.linearAttenuation = 0
+    o.quadraticAttenuation = 0.000002
     o.castShadows = false
     o.shadow = shadows.StandardShadow:new{
         camera = cameras.PerspectiveCamera:new({
@@ -118,6 +122,18 @@ function PointLight:linkWithScene(scene)
             scene.pub:sendMessage(
                 'pointLightProp',
                 { self.index, 'vec3', 'position', self.position }
+            )
+        end
+        if props.linearAttenuation then
+            scene.pub:sendMessage(
+                'pointLightProp',
+                { self.index, 'float', 'linearAttenuation', self.linearAttenuation }
+            )
+        end
+        if props.quadraticAttenuation then
+            scene.pub:sendMessage(
+                'pointLightProp',
+                { self.index, 'float', 'quadraticAttenuation', self.quadraticAttenuation }
             )
         end
     end
@@ -248,6 +264,8 @@ DirLight.update = Light.update
 
 ---@class SpotLight: Light
 ---@field index number
+---@field linearAttenuation number
+---@field quadraticAttenuation number
 ---@field castShadows boolean
 ---@field shadow StandardShadow
 ---@field angle number
@@ -268,6 +286,8 @@ function SpotLight:new(color, intensity, position, rotation, angle, penumbra)
     local o = Light.new(self, color, intensity, position, rotation)
     o.index = -1
     o.castShadows = false
+    o.linearAttenuation = 0
+    o.quadraticAttenuation = 0.000002
     o.angle = angle or math.rad(45)
     o.penumbra = penumbra or 0
     o.shadow = shadows.StandardShadow:new {
@@ -320,6 +340,18 @@ function SpotLight:linkWithScene(scene)
         if props.colorMap then
             scene.pub:sendMessage('spotLightColorMap',
                 { index = self.index, value = props.colorMap }
+            )
+        end
+        if props.linearAttenuation then
+            scene.pub:sendMessage(
+                'spotLightProp',
+                { self.index, 'float', 'linearAttenuation', self.linearAttenuation }
+            )
+        end
+        if props.quadraticAttenuation then
+            scene.pub:sendMessage(
+                'spotLightProp',
+                { self.index, 'float', 'quadraticAttenuation', self.quadraticAttenuation }
             )
         end
     end

@@ -14,6 +14,8 @@ struct ShadowInfo {
     struct PointLight {
         vec3 color;
         vec3 position;
+        float linearAttenuation;
+        float quadraticAttenuation;
     };
     uniform PointLight pointLights[NUM_POINT_LIGHTS];
 #endif
@@ -45,6 +47,8 @@ struct ShadowInfo {
         vec3 direction;
         float cosAngle;
         float cosInnerAngle;
+        float linearAttenuation;
+        float quadraticAttenuation;
     };
     uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
 #endif
