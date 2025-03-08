@@ -1,7 +1,6 @@
 return {
     snippet = [[
     #ifdef USE_ENV_MAP
-    // TODO: correct view direction for ortho camera
         vec3 envMapSampleDir;
         #if defined(ENV_MAP_TYPE_REFLECTION)
             envMapSampleDir = reflect(-viewDir, normal);

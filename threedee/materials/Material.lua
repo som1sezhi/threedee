@@ -44,6 +44,47 @@ function Material.new(self, initProps)
     return o
 end
 
+---Add a new mixin to this material after creation.
+---This should be called before assigning this material to any actor
+---@param mixin MaterialMixin
+function Material:addMixin(mixin)
+    -- make copies of various tables just for this material so
+    -- they don't pollute tables shared by other materials
+    if rawget(self, 'mixins') == nil then
+        -- make a copy just 
+        local mixins = self.mixins
+        self.mixins = {}
+        for _, m in ipairs(mixins) do
+            table.insert(self.mixins, m)
+        end
+    end
+    if rawget(self, 'changeFuncs') == nil then
+        self.changeFuncs = setmetatable({}, {__index = self.changeFuncs})
+    end
+    if rawget(self, 'listeners') == nil then
+        self.listeners = setmetatable({}, {__index = self.listeners})
+    end
+
+    -- TODO: have materialClass use this method?    
+    table.insert(self.mixins, mixin)
+    -- add new changeFuncs
+    if mixin.changeFuncs then
+        for k, changeFunc in pairs(mixin.changeFuncs) do
+            self.changeFuncs[k] = changeFunc
+        end
+    end
+    -- add new listeners
+    if mixin.listeners then
+        for k, listeners in pairs(mixin.listeners) do
+            self.listeners[k] = listeners
+        end
+    end
+    -- ensure mixin attributes are initialized
+    if mixin.init then
+        mixin.init(self)
+    end
+end
+
 ---Compiles the shader, setting the #defines according to the
 ---material and scene properties.
 ---Does not set any uniforms yet.

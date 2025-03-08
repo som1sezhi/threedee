@@ -42,12 +42,16 @@ local td = {
     MeshActor = sceneActors.MeshActor,
     NoteFieldProxy = sceneActors.NoteFieldProxy,
 
+    Material = require 'threedee.materials.Material',
     PhongMaterial = require 'threedee.materials.PhongMaterial',
     DepthMaterial = require 'threedee.materials.DepthMaterial',
     NormalMaterial = require 'threedee.materials.NormalMaterial',
     UnlitMaterial = require 'threedee.materials.UnlitMaterial',
     UVMaterial = require 'threedee.materials.UVMaterial',
     MatcapMaterial = require 'threedee.materials.MatcapMaterial',
+
+    preprocess = require 'threedee.glsl.preprocess',
+    mixins = require 'threedee.materials.mixins',
 
     AmbientLight = lights.AmbientLight,
     PointLight = lights.PointLight,
