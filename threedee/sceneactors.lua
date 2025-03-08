@@ -218,6 +218,11 @@ end
 ---A notefield proxy associated with a material.
 ---@class NoteFieldProxy: ActorWithMaterial
 ---@field player Player
+---@field useShaderFuck boolean
+---@field arrowMaterial? Material
+---@field holdMaterial? Material
+---@field receptorMaterial? Material
+---@field arrowPathMaterial? Material
 local NoteFieldProxy = class('NoteFieldProxy', ActorWithMaterial)
 
 ---Creates a new wrapped notefield proxy, and sets the proxy target to the
@@ -228,6 +233,7 @@ local NoteFieldProxy = class('NoteFieldProxy', ActorWithMaterial)
 function NoteFieldProxy:new(actor, material, player)
     local o = ActorWithMaterial.new(self, actor, material)
     o.player = player
+    o.useShaderFuck = true
     actor:SetTarget(player:GetChild('NoteField'))
     return o
 end
@@ -235,11 +241,18 @@ end
 function NoteFieldProxy:finalize(scene)
     ActorWithMaterial.finalize(self, scene)
     local shader = self.material.shader
-    -- probably don't need to do this since we use shaderfuck but eh
-    self.player:SetArrowShader(shader)
-	self.player:SetHoldShader(shader)
-	self.player:SetReceptorShader(shader)
-    self.player:SetArrowPathShader(shader)
+    self.player:SetArrowShader(
+        self.arrowMaterial and self.arrowMaterial.shader or shader
+    )
+	self.player:SetHoldShader(
+        self.holdMaterial and self.holdMaterial.shader or shader
+    )
+	self.player:SetReceptorShader(
+        self.receptorMaterial and self.receptorMaterial.shader or shader
+    )
+    self.player:SetArrowPathShader(
+        self.arrowPathMaterial and self.arrowPathMaterial.shader or shader
+    )
 end
 
 function NoteFieldProxy:Draw()
@@ -250,10 +263,22 @@ function NoteFieldProxy:Draw()
             self.actor:Draw()
         end
     else
-        DISPLAY:ShaderFuck(self.material.shader)
+        if self.useShaderFuck then
+            DISPLAY:ShaderFuck(self.material.shader)
+        end
+
         self.material:onBeforeDraw(self)
+        if not self.useShaderFuck then
+            if self.arrowMaterial then self.arrowMaterial:onBeforeDraw(self) end
+            if self.holdMaterial then self.holdMaterial:onBeforeDraw(self) end
+            if self.receptorMaterial then self.receptorMaterial:onBeforeDraw(self) end
+            if self.arrowPathMaterial then self.arrowPathMaterial:onBeforeDraw(self) end
+        end
+
         self.actor:Draw()
-        DISPLAY:ClearShaderFuck()
+        if self.useShaderFuck then
+            DISPLAY:ClearShaderFuck()
+        end
     end
 end
 

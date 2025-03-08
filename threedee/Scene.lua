@@ -85,22 +85,40 @@ function Scene:new(aframe, camera)
     return o
 end
 
+function Scene:_addMaterial(material)
+    -- don't add material if already in material tables
+    local shouldAddMaterial = true
+    for _, mat in ipairs(self.materials) do
+        if mat == material then
+            shouldAddMaterial = false
+            break
+        end
+    end
+    -- add to material tables
+    if shouldAddMaterial then
+        table.insert(self.materials, material)
+    end
+end
+
 ---@private
 function Scene:_addMaterialsFromSceneActor(sceneActor)
     if sceneActor.material then
         -- this is an ActorWithMaterial
-        local material = sceneActor.material
-        -- don't add material if already in material tables
-        local shouldAddMaterial = true
-        for _, mat in ipairs(self.materials) do
-            if mat == material then
-                shouldAddMaterial = false
-                break
+        self:_addMaterial(sceneActor.material)
+        if sceneActor.__name == 'NoteFieldProxy' then
+            ---@cast sceneActor NoteFieldProxy
+            if sceneActor.arrowMaterial then
+                self:_addMaterial(sceneActor.arrowMaterial)
             end
-        end
-        -- add to material tables
-        if shouldAddMaterial then
-            table.insert(self.materials, material)
+            if sceneActor.holdMaterial then
+                self:_addMaterial(sceneActor.holdMaterial)
+            end
+            if sceneActor.receptorMaterial then
+                self:_addMaterial(sceneActor.receptorMaterial)
+            end
+            if sceneActor.arrowPathMaterial then
+                self:_addMaterial(sceneActor.arrowPathMaterial)
+            end
         end
     elseif sceneActor.children then
         -- this is a SceneActorFrame, add children's materials
