@@ -4,7 +4,8 @@
 // world-space position
 varying vec3 vWorldPos;
 
-// camera position - fragment position (world space)
+// camera position - fragment position (world space) if camera is perspective
+// negative of camera view direction (world space, unnormalized) if camera is orthographic
 varying vec3 vViewVec;
 
 // world-space normal (not normalized)

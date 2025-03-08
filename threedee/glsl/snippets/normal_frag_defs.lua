@@ -3,6 +3,7 @@ return {
 varying vec3 vNormal;
 
 #ifdef USE_NORMAL_MAP
+    varying vec3 vCameraRelativeWorldPos;
     uniform sampler2D normalMap;
 
     // from "Followup: Normal Mapping Without Precomputed Tangents"

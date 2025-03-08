@@ -10,9 +10,9 @@ local vert = [[#version 120
 #include <color_vert_defs>
 
 void main() {
-	#include <normal_vert>
     #include <position_vert>
     #include <posvaryings_vert>
+    #include <normal_vert>
     #include <texcoord_vert>
     #include <color_vert>
 }

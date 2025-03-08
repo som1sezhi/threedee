@@ -10,9 +10,19 @@ local vert = [[#version 120
 
 void main() {
     #include <position_vert>
+
+    bool isOrthographic = tdProjMatrix[2][3] == 0.0;
+    if (isOrthographic) {
+        // force skybox to take up entire screen
+        gl_Position = gl_Vertex;
+    }
     gl_Position = gl_Position.xyww; // z = w/w = 1 (max depth)
     #ifdef USE_ENV_MAP
-        vDirection = envMapRotation * gl_Vertex.xyz;
+        if (isOrthographic) {
+            vDirection = envMapRotation * -vec3(tdViewMatrix[0][2], tdViewMatrix[1][2], tdViewMatrix[2][2]);
+        } else {
+            vDirection = envMapRotation * gl_Vertex.xyz;
+        }
     #endif
 }
 ]]
@@ -43,7 +53,7 @@ void main() {
         uv = img2tex(uv, colorMapTextureSize, colorMapImageSize);
         col = srgb2Linear(texture2D(colorMap, uv).rgb);
     #elif defined(USE_ENV_MAP)
-        // XXX: there's a visible seam when using
+        // BUG: there's a visible seam when using
         // envmaps with mipmaps, due to UV discontinuity causing
         // mipmap derivatives to go wacky
         vec2 uv = getEnvMapUV(normalize(vDirection));

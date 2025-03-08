@@ -5,6 +5,9 @@
 return {
     snippet = [[
     vNormal = gl_NormalMatrix * gl_Normal * vec3(1.0, -1.0, 1.0);
+    #ifdef USE_NORMAL_MAP
+        vCameraRelativeWorldPos = cameraPos - vWorldPos;
+    #endif
 ]],
-    deps = {'normal_vert_defs'}
+    deps = {'normal_vert_defs', 'posvaryings_vert'}
 }
