@@ -70,7 +70,11 @@ def gen_material_docs():
 
     lines = [
         '# Built-in Materials\n\n',
-        'Note that all these properties are in addition to the properties provided by the base class.\n\n'
+        'Note that all these properties are in addition to the properties provided by the base class.\n\n',
+        'Emoji meanings:\n',
+        '- ✅: This property is allowed to be modified after scene finalization/during "runtime", via the material\'s `:update()` method.\n'
+        '- ⚠️: This property may only be modified during runtime to a value with the *same type* as the previous value. For example, a `.colorMap` property that was set to a `RageTexture` can only be changed to another `RageTexture`. An `.envMap` property set to an `EnvMap` may only be set to another `EnvMap` with the *same properties* (mapping, color format, etc.), besides perhaps the texture itself. A property set to `false` or `\'sampler0\'` should not be modified during runtime at all.\n',
+        '- ❌: This property should not be modified at runtime.\n\n',
     ]
     for mat in materials:
         fields = get_fields(mat)
@@ -78,21 +82,23 @@ def gen_material_docs():
             k:v for k, v in fields.items()
             if k not in base_mat_fields and k != 'update'
         }
+
         lines.append(f'## {mat['name']}\n\n')
         if desc := mat['defines'][0].get('desc'):
             lines.append(desc + '\n\n')
+        
+        lines.append('### Properties\n\n')
         if not own_fields:
             lines.append('This material has no additional properties.\n\n')
             continue
-        lines.append('### Properties\n\n')
-        lines.append('Name | Type | Updatable during runtime? | Description | Default value\n')
-        lines.append('--- | --- | :---: | --- | ---\n')
+
         for f in own_fields.values():
-            f: LuaField
-            l = f'{f.name} | `{escpipe(f.type)}` ' \
-                f'| {UPDATABLE_TO_EMOJI.get(f.updatable, '')} ' \
-                f'| {f.desc} | {f.default}\n'
-            lines.append(l)
+            lines.extend([
+                f'#### `.{f.name}: {f.type}`\n',
+                f.desc + '\n',
+                f'- Default value: {f.default}\n',
+                f'- Updatable during runtime?: {UPDATABLE_TO_EMOJI.get(f.updatable, '')}\n\n',
+            ])
         lines.append('\n')
 
     with open('./docs/materials.md', 'w', encoding='utf-8') as file:
