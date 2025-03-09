@@ -95,6 +95,8 @@ end
 ---@field children SceneActor[]
 local SceneActorFrame = class('SceneActorFrame', SceneActor)
 
+---Creates a new wrapped ActorFrame. Also sets a simple drawfunction
+---on `aframe` that just draws all its children.
 ---@param aframe ActorFrame | SceneActorFrame
 ---@return SceneActorFrame
 function SceneActorFrame:new(aframe)
@@ -116,7 +118,7 @@ function SceneActorFrame:new(aframe)
 end
 
 ---Add a child or children to this SceneActorFrame. The children
----should all wrap an actual child of the underlying ActorFrame.
+---should all wrap an actual direct child of the underlying ActorFrame.
 ---@param sceneActor SceneActor | SceneActor[]
 function SceneActorFrame:add(sceneActor)
     local len = #sceneActor
@@ -181,8 +183,10 @@ end
 ---@field shadowCullMode 'none'|'front'|'back'
 local MeshActor = class('MeshActor', ActorWithMaterial)
 
+---Creates and returns a new MeshActor, wrapping `actor` and associating it with `material`.
 ---@param actor Sprite | Model | Polygon | MeshActor
 ---@param material Material
+---@return MeshActor
 function MeshActor:new(actor, material)
     local o = ActorWithMaterial.new(self, actor, material)
     o.shadowCullMode = 'none'
@@ -226,7 +230,7 @@ end
 local NoteFieldProxy = class('NoteFieldProxy', ActorWithMaterial)
 
 ---Creates a new wrapped notefield proxy, and sets the proxy target to the
----player's notefield.
+---given player's notefield.
 ---@param actor ActorProxy | NoteFieldProxy
 ---@param material Material
 ---@param player Player

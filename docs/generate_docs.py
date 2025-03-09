@@ -83,7 +83,7 @@ def gen_material_docs():
             if k not in base_mat_fields and k != 'update'
         }
 
-        lines.append(f'## {mat['name']}\n\n')
+        lines.append(f'## `{mat['name']}`\n\n')
         if desc := mat['defines'][0].get('desc'):
             lines.append(desc + '\n\n')
         
@@ -94,10 +94,10 @@ def gen_material_docs():
 
         for f in own_fields.values():
             lines.extend([
-                f'#### `.{f.name}: {f.type}`\n',
+                f'#### `{mat['name']}.{f.name}: {f.type}`\n',
                 f.desc + '\n',
                 f'- Default value: {f.default}\n',
-                f'- Updatable during runtime?: {UPDATABLE_TO_EMOJI.get(f.updatable, '')}\n\n',
+                f'- Updatable during runtime: {UPDATABLE_TO_EMOJI.get(f.updatable, '')}\n\n',
             ])
         lines.append('\n')
 

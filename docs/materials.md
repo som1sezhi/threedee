@@ -7,261 +7,261 @@ Emoji meanings:
 - ⚠️: This property may only be modified during runtime to a value with the *same type* as the previous value. For example, a `.colorMap` property that was set to a `RageTexture` can only be changed to another `RageTexture`. An `.envMap` property set to an `EnvMap` may only be set to another `EnvMap` with the *same properties* (mapping, color format, etc.), besides perhaps the texture itself. A property set to `false` or `'sampler0'` should not be modified during runtime at all.
 - ❌: This property should not be modified at runtime.
 
-## DepthMaterial
+## `DepthMaterial`
 
 A material used to visualize the depth of the scene, or to encode depth values
 as colors. This material is used internally to draw shadow maps.
 
 ### Properties
 
-#### `.alphaHash: boolean`
+#### `DepthMaterial.alphaHash: boolean`
 Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.alphaMap: 'sampler0'|RageTexture|false`
+#### `DepthMaterial.alphaMap: 'sampler0'|RageTexture|false`
 The alpha channel of this texture is used to modulate the material's alpha. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.alphaTest: number`
+#### `DepthMaterial.alphaTest: number`
 Pixels with alpha lower than this value will be discarded. This works even if `.transparent` is false.
 - Default value: `0.001`
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.opacity: number`
+#### `DepthMaterial.opacity: number`
 The base alpha.
-- Default value: `1`
-- Updatable during runtime?: ✅
+- Default value: `1` (fully opaque)
+- Updatable during runtime: ✅
 
-#### `.packingFormat: 'none'|'rg'|'rgb'`
+#### `DepthMaterial.packingFormat: 'none'|'rg'|'rgb'`
 How to pack the depth value into the color channels. `'none'` performs no packing, `'rg'` uses the red and green channels, and `'rgb'` uses the red, green, and blue channels.
 - Default value: `'none'`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.transparent: boolean`
+#### `DepthMaterial.transparent: boolean`
 Whether the material is transparent, or is able to be transparent via a texture. If false, all pixels will either be fully opaque or discarded.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.useVertexColorAlpha: boolean`
+#### `DepthMaterial.useVertexColorAlpha: boolean`
 Whether to use the actor's vertex color alpha to modulate the alpha of the material.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
 
-## MatcapMaterial
+## `MatcapMaterial`
 
 A material that uses a matcap texture to give an appearance of lighting/shading.
 
 ### Properties
 
-#### `.alphaHash: boolean`
+#### `MatcapMaterial.alphaHash: boolean`
 Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.alphaTest: number`
+#### `MatcapMaterial.alphaTest: number`
 Pixels with alpha lower than this value will be discarded. This works even if `.transparent` is false.
 - Default value: `0.001`
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.color: Vec3`
+#### `MatcapMaterial.color: Vec3`
 Base color.
-- Default value: `(1, 1, 1)`
-- Updatable during runtime?: ✅
+- Default value: `(1, 1, 1)` (white)
+- Updatable during runtime: ✅
 
-#### `.colorMap: 'sampler0'|RageTexture|false`
+#### `MatcapMaterial.colorMap: 'sampler0'|RageTexture|false`
 Base color texture. An alpha channel may be included. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.matcap: RageTexture|false`
+#### `MatcapMaterial.matcap: RageTexture|false`
 The matcap texture.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.normalMap: RageTexture|false`
+#### `MatcapMaterial.normalMap: RageTexture|false`
 The normal map.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.opacity: number`
+#### `MatcapMaterial.opacity: number`
 The base alpha.
-- Default value: `1`
-- Updatable during runtime?: ✅
+- Default value: `1` (fully opaque)
+- Updatable during runtime: ✅
 
-#### `.transparent: boolean`
+#### `MatcapMaterial.transparent: boolean`
 Whether the material is transparent, or is able to be transparent via a texture. If false, all pixels will either be fully opaque or discarded.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.useVertexColors: boolean`
+#### `MatcapMaterial.useVertexColors: boolean`
 Whether to use the actor's vertex colors to color the material. Among other things, this allows you to color actors individually using `:diffuse()`.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.vertexColorInterpolation: 'linear'|'srgb'`
+#### `MatcapMaterial.vertexColorInterpolation: 'linear'|'srgb'`
 If using vertex colors, this defines whether to interpolate vertex colors in linear RGB or sRGB space. Linear RGB is more "correct" and can look better in certain cases, while sRGB gives closer results to what you might get using regular NotITG methods like `:diffusetopedge()` and such. Note that the vertex color values themselves are always specified in sRGB space.
 - Default value: `'linear'`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
 
-## NormalMaterial
+## `NormalMaterial`
 
 A material that visualizes normal vectors as RGB colors.
 
 ### Properties
 
-#### `.alphaHash: boolean`
+#### `NormalMaterial.alphaHash: boolean`
 Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.alphaMap: 'sampler0'|RageTexture|false`
+#### `NormalMaterial.alphaMap: 'sampler0'|RageTexture|false`
 The alpha channel of this texture is used to modulate the material's alpha. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.alphaTest: number`
+#### `NormalMaterial.alphaTest: number`
 Pixels with alpha lower than this value will be discarded. This works even if `.transparent` is false.
 - Default value: `0.001`
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.normalMap: RageTexture|false`
+#### `NormalMaterial.normalMap: RageTexture|false`
 The normal map.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.opacity: number`
+#### `NormalMaterial.opacity: number`
 The base alpha.
-- Default value: `1`
-- Updatable during runtime?: ✅
+- Default value: `1` (fully opaque)
+- Updatable during runtime: ✅
 
-#### `.transparent: boolean`
+#### `NormalMaterial.transparent: boolean`
 Whether the material is transparent, or is able to be transparent via a texture. If false, all pixels will either be fully opaque or discarded.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.useVertexColorAlpha: boolean`
+#### `NormalMaterial.useVertexColorAlpha: boolean`
 Whether to use the actor's vertex color alpha to modulate the alpha of the material.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
 
-## PhongMaterial
+## `PhongMaterial`
 
 A material using the Blinn-Phong shading model.
 
 ### Properties
 
-#### `.alphaHash: boolean`
+#### `PhongMaterial.alphaHash: boolean`
 Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.alphaTest: number`
+#### `PhongMaterial.alphaTest: number`
 Pixels with alpha lower than this value will be discarded. This works even if `.transparent` is false.
 - Default value: `0.001`
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.color: Vec3`
+#### `PhongMaterial.color: Vec3`
 Base color.
-- Default value: `(1, 1, 1)`
-- Updatable during runtime?: ✅
+- Default value: `(1, 1, 1)` (white)
+- Updatable during runtime: ✅
 
-#### `.colorMap: 'sampler0'|RageTexture|false`
+#### `PhongMaterial.colorMap: 'sampler0'|RageTexture|false`
 Base color texture. An alpha channel may be included. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.emissive: Vec3`
+#### `PhongMaterial.emissive: Vec3`
 Emissive color.
-- Default value: `(0, 0, 0)`
-- Updatable during runtime?: ✅
+- Default value: `(0, 0, 0)` (black)
+- Updatable during runtime: ✅
 
-#### `.emissiveMap: RageTexture|false`
+#### `PhongMaterial.emissiveMap: RageTexture|false`
 Emissive map. Be sure to set `.emissive` to a non-black value to see any effect.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.envMap: EnvMap|false`
+#### `PhongMaterial.envMap: EnvMap|false`
 The environment map.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.envMapCombine: 'add'|'mix'|'multiply'`
+#### `PhongMaterial.envMapCombine: 'add'|'mix'|'multiply'`
 The math operation used to blend the environment map with the material.
 - Default value: `'multiply'`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.envMapRotation: Mat3`
+#### `PhongMaterial.envMapRotation: Mat3`
 The rotation of the environment map.
 - Default value: identity matrix
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.envMapStrength: number`
+#### `PhongMaterial.envMapStrength: number`
 How much the environment map affects the color of the material.
-- Default value: `1`
-- Updatable during runtime?: ✅
+- Default value: `1` (full strength)
+- Updatable during runtime: ✅
 
-#### `.envMapType: 'reflection'|'refraction'`
+#### `PhongMaterial.envMapType: 'reflection'|'refraction'`
 Whether to use `.envMap` as a reflection or refraction map.
 - Default value: `'reflection'`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.normalMap: RageTexture|false`
+#### `PhongMaterial.normalMap: RageTexture|false`
 The normal map.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.opacity: number`
+#### `PhongMaterial.opacity: number`
 The base alpha.
-- Default value: `1`
-- Updatable during runtime?: ✅
+- Default value: `1` (fully opaque)
+- Updatable during runtime: ✅
 
-#### `.refractionRatio: number`
+#### `PhongMaterial.refractionRatio: number`
 The index of refraction (IOR) of air divided by the IOR of the material. Only has an effect if `.envMapType = 'refraction'`.
 - Default value: `0.98`
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.shininess: number`
+#### `PhongMaterial.shininess: number`
 The sharpness of the specular highlight.
 - Default value: `32`
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.specular: Vec3`
+#### `PhongMaterial.specular: Vec3`
 Specular color.
-- Default value: `(1, 1, 1)`
-- Updatable during runtime?: ✅
+- Default value: `(1, 1, 1)` (white)
+- Updatable during runtime: ✅
 
-#### `.specularMap: RageTexture|false`
+#### `PhongMaterial.specularMap: RageTexture|false`
 Specular map. Affects both the specular color and the environment map.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.specularMapColorSpace: 'linear'|'srgb'`
+#### `PhongMaterial.specularMapColorSpace: 'linear'|'srgb'`
 Whether to interpret the specular map data as linear or sRGB. If the specular map is grayscale, this should probably be `'linear'`; if it is colored, this should probably be `'srgb'`.
 - Default value: `'linear'`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.transparent: boolean`
+#### `PhongMaterial.transparent: boolean`
 Whether the material is transparent, or is able to be transparent via a texture. If false, all pixels will either be fully opaque or discarded.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.useVertexColors: boolean`
+#### `PhongMaterial.useVertexColors: boolean`
 Whether to use the actor's vertex colors to color the material. Among other things, this allows you to color actors individually using `:diffuse()`.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.vertexColorInterpolation: 'linear'|'srgb'`
+#### `PhongMaterial.vertexColorInterpolation: 'linear'|'srgb'`
 If using vertex colors, this defines whether to interpolate vertex colors in linear RGB or sRGB space. Linear RGB is more "correct" and can look better in certain cases, while sRGB gives closer results to what you might get using regular NotITG methods like `:diffusetopedge()` and such. Note that the vertex color values themselves are always specified in sRGB space.
 - Default value: `'linear'`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
 
-## UVMaterial
+## `UVMaterial`
 
 A debug material that visualizes the UV coordinates on an object using red and green values.
 
@@ -269,50 +269,50 @@ A debug material that visualizes the UV coordinates on an object using red and g
 
 This material has no additional properties.
 
-## UnlitMaterial
+## `UnlitMaterial`
 
 A material that only shows the base color and does not respond to lighting.
 
 ### Properties
 
-#### `.alphaHash: boolean`
+#### `UnlitMaterial.alphaHash: boolean`
 Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.alphaTest: number`
+#### `UnlitMaterial.alphaTest: number`
 Pixels with alpha lower than this value will be discarded. This works even if `.transparent` is false.
 - Default value: `0.001`
-- Updatable during runtime?: ✅
+- Updatable during runtime: ✅
 
-#### `.color: Vec3`
+#### `UnlitMaterial.color: Vec3`
 Base color.
-- Default value: `(1, 1, 1)`
-- Updatable during runtime?: ✅
+- Default value: `(1, 1, 1)` (white)
+- Updatable during runtime: ✅
 
-#### `.colorMap: 'sampler0'|RageTexture|false`
+#### `UnlitMaterial.colorMap: 'sampler0'|RageTexture|false`
 Base color texture. An alpha channel may be included. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
-- Updatable during runtime?: ⚠️
+- Updatable during runtime: ⚠️
 
-#### `.opacity: number`
+#### `UnlitMaterial.opacity: number`
 The base alpha.
-- Default value: `1`
-- Updatable during runtime?: ✅
+- Default value: `1` (fully opaque)
+- Updatable during runtime: ✅
 
-#### `.transparent: boolean`
+#### `UnlitMaterial.transparent: boolean`
 Whether the material is transparent, or is able to be transparent via a texture. If false, all pixels will either be fully opaque or discarded.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.useVertexColors: boolean`
+#### `UnlitMaterial.useVertexColors: boolean`
 Whether to use the actor's vertex colors to color the material. Among other things, this allows you to color actors individually using `:diffuse()`.
 - Default value: `false`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
-#### `.vertexColorInterpolation: 'linear'|'srgb'`
+#### `UnlitMaterial.vertexColorInterpolation: 'linear'|'srgb'`
 If using vertex colors, this defines whether to interpolate vertex colors in linear RGB or sRGB space. Linear RGB is more "correct" and can look better in certain cases, while sRGB gives closer results to what you might get using regular NotITG methods like `:diffusetopedge()` and such. Note that the vertex color values themselves are always specified in sRGB space.
 - Default value: `'linear'`
-- Updatable during runtime?: ❌
+- Updatable during runtime: ❌
 
 
