@@ -3,6 +3,7 @@ local sources = require 'threedee.glsl.shaders.normalmaterial'
 local mixins  = require 'threedee.materials.mixins'
 local materialClass = require 'threedee.materials.materialClass'
 
+---A material that visualizes normal vectors as RGB colors.
 ---@class NormalMaterial: Material, WithCamera, WithNormalMap, WithAlphaMap, WithAlpha
 local NormalMaterial = materialClass('NormalMaterial', Material, {
     mixins.CameraMixin,

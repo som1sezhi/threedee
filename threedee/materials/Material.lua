@@ -5,6 +5,7 @@ local Updatable = require 'threedee.Updatable'
 ---@alias MaterialListener fun(self: Material, args: table)
 ---@alias ChangeFunc fun(self: Material, newVal?: any)
 
+---Base class for all materials.
 ---@class Material: Updatable
 ---@field shader RageShaderProgram
 ---@field vertSource? string

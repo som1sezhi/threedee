@@ -64,10 +64,10 @@ mixins.CameraMixin = {
 ---------------------------------------------------------------------
 
 ---@class WithAlpha: Material
----@field transparent boolean
----@field opacity number
----@field alphaTest number
----@field alphaHash boolean
+---@field transparent boolean (X) Whether the material is transparent, or is able to be transparent via a texture. If false, all pixels will either be fully opaque or discarded. Default: `false`
+---@field opacity number (U) The base alpha. Default: `1`
+---@field alphaTest number (U) Pixels with alpha lower than this value will be discarded. This works even if `.transparent` is false. Default: `0.001`
+---@field alphaHash boolean (X) Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy. Default: `false`
 
 ---Handles transparency/opacity, alpha testing, and alpha hashing.
 ---
@@ -98,10 +98,10 @@ mixins.AlphaMixin = {
 ---------------------------------------------------------------------
 
 ---@class WithColor: Material
----@field color Vec3
----@field colorMap RageTexture|'sampler0'|false
----@field useVertexColors boolean
----@field vertexColorInterpolation 'srgb'|'linear'
+---@field color Vec3 (U) Base color. Default: `(1, 1, 1)`
+---@field colorMap RageTexture|'sampler0'|false (C) Base color texture. An alpha channel may be included. If set to `'sampler0'`, use the actor's default texture. Default: `false`
+---@field useVertexColors boolean (X) Whether to use the actor's vertex colors to color the material. Among other things, this allows you to color actors individually using `:diffuse()`. Default: `false`
+---@field vertexColorInterpolation 'srgb'|'linear' (X) If using vertex colors, this defines whether to interpolate vertex colors in linear RGB or sRGB space. Linear RGB is more "correct" and can look better in certain cases, while sRGB gives closer results to what you might get using regular NotITG methods like `:diffusetopedge()` and such. Note that the vertex color values themselves are always specified in sRGB space. Default: `'linear'` 
 
 ---Handles base color, color maps, and vertex colors.
 ---
@@ -143,8 +143,8 @@ mixins.ColorMixin = {
 ---------------------------------------------------------------------
 
 ---@class WithAlphaMap: Material
----@field alphaMap RageTexture|'sampler0'|false
----@field useVertexColorAlpha boolean
+---@field alphaMap RageTexture|'sampler0'|false (C) The alpha channel of this texture is used to modulate the material's alpha. If set to `'sampler0'`, use the actor's default texture. Default: `false`
+---@field useVertexColorAlpha boolean (X) Whether to use the actor's vertex color alpha to modulate the alpha of the material. Default: `false`
 
 ---Handles alpha maps. This is for materials that do not have color maps otherwise.
 ---USE_VERTEX_COLORS should be defined at the top of shaders that support this mixin.
@@ -183,7 +183,7 @@ mixins.AlphaMapMixin = {
 ---------------------------------------------------------------------
 
 ---@class WithNormalMap: Material
----@field normalMap RageTexture|false
+---@field normalMap RageTexture|false (C) The normal map. Default: `false`
 
 ---Handles normal maps.
 ---
@@ -209,12 +209,12 @@ mixins.NormalMapMixin = {
 ---------------------------------------------------------------------
 
 ---@class WithEnvMap: Material
----@field envMap EnvMap|false
----@field envMapType 'reflection'|'refraction'
----@field envMapStrength number
----@field envMapCombine 'multiply'|'add'|'mix'
----@field envMapRotation Mat3
----@field refractionRatio number
+---@field envMap EnvMap|false (C) The environment map. Default: `false`
+---@field envMapType 'reflection'|'refraction' (X) Whether to use `.envMap` as a reflection or refraction map. Default: `'reflection'`
+---@field envMapStrength number (U) How much the environment map affects the color of the material. Default: `1`
+---@field envMapCombine 'multiply'|'add'|'mix' (X) The math operation used to blend the environment map with the material. Default: `'multiply'`
+---@field envMapRotation Mat3 (U) The rotation of the environment map. Default: identity matrix
+---@field refractionRatio number (U) The index of refraction (IOR) of air divided by the IOR of the material. Only has an effect if `.envMapType = 'refraction'`. Default: `0.98`
 
 ---Handles environment maps.
 ---

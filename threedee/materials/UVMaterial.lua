@@ -4,7 +4,7 @@ local sources = require 'threedee.glsl.shaders.uvmaterial'
 local mixins  = require 'threedee.materials.mixins'
 local materialClass = require 'threedee.materials.materialClass'
 
----A debug material that visualizes the UV coordinates on an object.
+---A debug material that visualizes the UV coordinates on an object using red and green values.
 ---@class UVMaterial: Material, WithCamera
 local UVMaterial = materialClass('UVMaterial', Material, {
     mixins.CameraMixin

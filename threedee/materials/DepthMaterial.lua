@@ -3,9 +3,10 @@ local Material = require 'threedee.materials.Material'
 local sources = require 'threedee.glsl.shaders.depthmaterial'
 local mixins  = require 'threedee.materials.mixins'
 
-
+---A material used to visualize the depth of the scene, or to encode depth values
+---as colors. This material is used internally to draw shadow maps.
 ---@class DepthMaterial: Material, WithCamera, WithAlphaMap, WithAlpha
----@field packingFormat 'none'|'rg'|'rgb'
+---@field packingFormat 'none'|'rg'|'rgb' (X) How to pack the depth value into the color channels. `'none'` performs no packing, `'rg'` uses the red and green channels, and `'rgb'` uses the red, green, and blue channels. Default: `'none'`
 local DepthMaterial = materialClass('DepthMaterial', Material, {
     mixins.CameraMixin,
     mixins.AlphaMapMixin,

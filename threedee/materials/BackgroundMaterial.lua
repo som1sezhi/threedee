@@ -7,6 +7,7 @@ local Mat3 = require 'threedee.math.Mat3'
 local Vec3 = require 'threedee.math.Vec3'
 local cfs = require 'threedee.materials.changeFuncs'
 
+---A material used internally to draw the scene background.
 ---@class BackgroundMaterial: Material, WithCamera
 ---@field color Vec3
 ---@field colorMap RageTexture|false

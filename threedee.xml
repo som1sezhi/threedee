@@ -10,6 +10,7 @@ end)"><children>
         <Layer Frag="@xero.placeholder" />
         <Layer Frag="@xero.placeholder" />
         <Layer Frag="@xero.placeholder" />
+        <Layer Frag="@xero.placeholder" />
     </children></Layer>
 
     <Layer Type="ActorFrame" Name="_td_shadowMapAfts"><children>
