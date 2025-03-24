@@ -149,6 +149,4 @@ in `docs/example`.
 
 ## Documentation
 
-Currently documentation is pretty nonexistent (sorry about that). In the
-meantime, you can look through the code to see what you can do, though
-I understand that this isn't exactly a good replacement for documentation lmao
+API documentation can be found [here](docs/index.md).
