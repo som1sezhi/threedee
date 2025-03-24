@@ -7,9 +7,9 @@ local Mat4 = require 'threedee.math.Mat4'
 
 ---Base class for a thing in 3D space with a position and orientation (cameras, lights)
 ---@class OrientedObject: Updatable
----@field position Vec3
----@field rotation Quat
----@field viewMatrix Mat4
+---@field position Vec3 (U) The position of this object. Default: `(0, 0, 0)`
+---@field rotation Quat (U) The rotation of this object. Default: identity quaternion (no rotation)
+---@field viewMatrix Mat4 (R) The object's view matrix. Automatically updated whenever `position` or `rotation` is updated via `:update()` or `:lookAt()`.
 local OrientedObject = class('OrientedObject', Updatable)
 
 ---@class (partial) OrientedObject.P: OrientedObject
@@ -57,7 +57,10 @@ function OrientedObject:_update(props)
     end
 end
 
----Positions `self` at `eyePos`, and rotates it to look at `targetPos`.
+---Positions `self` at `eyePos`, and rotates it to look at `targetPos`, 
+---with its viewpoint oriented with its up vector pointed in the
+---direction hinted by `up`. If `up` is not given, a default of
+---`(0, -1, 0)` (the world up-direction) 'will be used.'
 ---@param eyePos Vec3
 ---@param targetPos Vec3
 ---@param up? Vec3

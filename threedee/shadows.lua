@@ -12,17 +12,20 @@ standardDepthMat.packingFormat = 'rgb'
 ---@diagnostic disable-next-line: missing-parameter
 standardDepthMat:compile()
 
----A regular shadow map using a single camera and an RGB-packed depth format.
+---A regular shadow map implementation, using a single camera and an RGB-packed depth format.
 ---@class StandardShadow: Updatable
----@field camera Camera
----@field bias number
----@field shadowMapAft? ActorFrameTexture
+---@field camera Camera (Y) The camera used to draw the shadow map. Default: a PerspectiveCamera with all the values set to default.
+---@field bias number (U) A bias value to add to a pixel's depth value before testing it against the shadow map. Small negative values can help in mitigating the appearance of strip-like "shadow acne" artifacts, at the cost of causing shadows to appear slightly detached from their casters. Default: `-0.003`
+---@field shadowMapAft? ActorFrameTexture (R) The AFT holding the shadow map texture. This starts off as `nil`, with an AFT being assigned to this property only during scene finalization, and only if the shadow is active.
 local StandardShadow = class('StandardShadow', Updatable)
 
 ---@class StandardShadow.P
 ---@field camera? Camera
 ---@field bias? number
 
+---Creates a new StandardShadow. props is a table that contains one or more properties that will be passed into the new StandardShadow; missing properties will be initialized with their defaults.
+---
+---You likely don't actually need to call this yourself, as lights that support shadows already come with their own instances of StandardShadow, whose properties can be modified for your use.
 ---@param props StandardShadow.P
 ---@return StandardShadow
 function StandardShadow:new(props)
@@ -37,7 +40,7 @@ end
 ---@type fun(self: StandardShadow, props: StandardShadow.P)
 StandardShadow.update = Updatable.update
 
----Draws the shadow map and saves it to self.shadowMapAft.
+---Called internally to draw the shadow map and save it to self.shadowMapAft.
 ---@param scene Scene
 function StandardShadow:drawShadowMap(scene)
     -- init screen with white (max depth)
@@ -69,9 +72,11 @@ function StandardShadow:drawShadowMap(scene)
     scene.camera = oldCamera
 end
 
+---A StandardShadow with the camera type limited to PerspectiveCamera. Appropriate for PointLights and SpotLights.
 ---@class StandardPerspectiveShadow: StandardShadow
 ---@field camera PerspectiveCamera
 
+---A StandardShadow with the camera type limited to OrthographicCamera. Appropriate for DirLights.
 ---@class StandardOrthographicShadow: StandardShadow
 ---@field camera OrthographicCamera
 

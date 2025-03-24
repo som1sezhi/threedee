@@ -3,30 +3,33 @@ local Vec3 = require 'threedee.math.Vec3'
 
 local WORLD_UP = Vec3:new(0, -1, 0)
 
+---A 4x4 matrix. Entries are in column-major order.
 ---@class Mat4
----@field [1] number
----@field [2] number
----@field [3] number
----@field [4] number
----@field [5] number
----@field [6] number
----@field [7] number
----@field [8] number
----@field [9] number
----@field [10] number
----@field [11] number
----@field [12] number
----@field [13] number
----@field [14] number
----@field [15] number
----@field [16] number
+---@field [1] number Element at row 1, column 1.
+---@field [2] number Element at row 2, column 1.
+---@field [3] number Element at row 3, column 1.
+---@field [4] number Element at row 4, column 1.
+---@field [5] number Element at row 1, column 2.
+---@field [6] number Element at row 2, column 2.
+---@field [7] number Element at row 3, column 2.
+---@field [8] number Element at row 4, column 2.
+---@field [9] number Element at row 1, column 3.
+---@field [10] number Element at row 2, column 3.
+---@field [11] number Element at row 3, column 3.
+---@field [12] number Element at row 4, column 3.
+---@field [13] number Element at row 1, column 4.
+---@field [14] number Element at row 2, column 4.
+---@field [15] number Element at row 3, column 4.
+---@field [16] number Element at row 4, column 4.
 ---@operator add(Mat4): Mat4
 ---@operator sub(Mat4): Mat4
 ---@operator mul(Mat4): Mat4
 ---@operator unm(Mat4): Mat4
 local Mat4 = class('Mat4')
 
----Note: entries are in column-major order
+---Creates a new Mat3.
+---Entries should be specified in column-major order.
+---If no arguments are given, the identity matrix is returned.
 ---@param a11? number
 ---@param a21? number
 ---@param a31? number
@@ -67,6 +70,7 @@ function Mat4:new(
     return m
 end
 
+---Sets `self` to the identity matrix.
 ---@return self
 function Mat4:identity()
     return self:set(
@@ -77,11 +81,13 @@ function Mat4:identity()
     )
 end
 
+---Returns a copy of `self`.
 ---@return Mat4
 function Mat4:clone()
     return Mat4:new(unpack(self))
 end
 
+---Copies the elements of `source` to `self`.
 ---@param source Mat4
 ---@return self
 function Mat4:copy(source)
@@ -91,7 +97,8 @@ function Mat4:copy(source)
     return self
 end
 
----Note: entries are in column-major order
+---Sets the entries of `self`.
+---Entries should be specified in column-major order.
 ---@param a11 number
 ---@param a21 number
 ---@param a31 number
@@ -122,7 +129,7 @@ function Mat4:set(
     return self
 end
 
----Sets the upper 3x3 submatrix
+---Sets the upper 3x3 submatrix of `self` to `mat`.
 ---@param mat Mat3
 ---@return self
 function Mat4:setUpperMat3(mat)
@@ -132,6 +139,7 @@ function Mat4:setUpperMat3(mat)
     return self
 end
 
+---Sets `self` in terms of row vectors.
 ---@param row1 Vec4
 ---@param row2 Vec4
 ---@param row3 Vec4
@@ -145,6 +153,7 @@ function Mat4:setFromRows(row1, row2, row3, row4)
     )
 end
 
+---Sets `self` in terms of column vectors.
 ---@param col1 Vec4
 ---@param col2 Vec4
 ---@param col3 Vec4
@@ -158,6 +167,7 @@ function Mat4:setFromCols(col1, col2, col3, col4)
     )
 end
 
+---Sets `self` to the result of `self + other`.
 ---@param other Mat4
 ---@return self
 function Mat4:add(other)
@@ -167,6 +177,7 @@ function Mat4:add(other)
     return self
 end
 
+---Sets `self` to the result of `self - other`.
 ---@param other Mat4
 ---@return self
 function Mat4:sub(other)
@@ -176,6 +187,7 @@ function Mat4:sub(other)
     return self
 end
 
+---Sets `self` to the result of `-self`.
 ---@return self
 function Mat4:neg()
     for i = 1, 16 do
@@ -184,6 +196,7 @@ function Mat4:neg()
     return self
 end
 
+---Scales `self` by the scalar `r`.
 ---@param r number
 ---@return self
 function Mat4:scale(r)
@@ -193,18 +206,21 @@ function Mat4:scale(r)
     return self
 end
 
+---Sets `self` to the result of the matrix multiplication `self * other`.
 ---@param other Mat4
 ---@return self
 function Mat4:mul(other)
     return self:mulMatrices(self, other)
 end
 
+---Sets `self` to the result of the matrix multiplication `other * self`.
 ---@param other Mat4
 ---@return self
 function Mat4:premul(other)
     return self:mulMatrices(other, self)
 end
 
+---Sets `self` to the result of the matrix multiplication `matrixA * matrixB`.
 ---@param matrixA Mat4
 ---@param matrixB Mat4
 ---@return self
@@ -239,6 +255,7 @@ function Mat4:mulMatrices(matrixA, matrixB)
     return self
 end
 
+---Sets `self` to its `transpose`.
 ---@return self
 function Mat4:transpose()
     -- 1 5 9  13
@@ -254,11 +271,14 @@ function Mat4:transpose()
     return self
 end
 
----Sets `self` to a view matrix for a camera at position `eye` looking at `at`.
+---Sets `self` to a view matrix for a camera at position `eye` looking at `at`, with the view's
+---up direction oriented based on `up`. If `up` is not given, the world up vector `(0, -1, 0)` is used
+---by default.
+---
 ---Be aware that this gives a view matrix, not a world matrix for the camera/any other object.
----@param eye Vec3 camera position
----@param at Vec3 target position
----@param up? Vec3 up vector (remember -Y is up in NotITG)
+---@param eye Vec3
+---@param at Vec3
+---@param up? Vec3
 ---@return self
 function Mat4:lookAt(eye, at, up)
     up = up or WORLD_UP
@@ -289,12 +309,12 @@ end
 
 ---Sets `self` to a projection matrix for a general frustum.
 ---All coordinates should be in view space.
----@param l number left coordinate
----@param r number right coordinate
----@param b number bottom coordinate
----@param t number top coordinate
----@param zn number near plane distance
----@param zf number far plane distance
+---@param l number
+---@param r number
+---@param b number
+---@param t number
+---@param zn number
+---@param zf number
 ---@return self
 function Mat4:frustum(l, r, b, t, zn, zf)
     local A = (r+l) / (r-l)
@@ -312,10 +332,10 @@ end
 ---Sets `self` to a projection matrix for a symmetric frustum.
 ---Equivalent to `frustum(-r, r, -t, t, zn, zf)`.
 ---All coordinates should be in view space.
----@param r number right coordinate
----@param t number top coordinate
----@param zn number near plane distance
----@param zf number far plane distance
+---@param r number
+---@param t number
+---@param zn number
+---@param zf number
 ---@return self
 function Mat4:symmetricFrustum(r, t, zn, zf)
     return self:set(
@@ -326,8 +346,9 @@ function Mat4:symmetricFrustum(r, t, zn, zf)
     )
 end
 
----Sets `self` to a projection matrix for a perspective camera.
----@param fovY number vertical FOV (radians)
+---Sets `self` to a projection matrix for a perspective camera. Note that
+---`fovY` specifies the vertical FOV in radians.
+---@param fovY number
 ---@param aspectRatio number
 ---@param near number
 ---@param far number
@@ -358,6 +379,7 @@ function Mat4:orthographic(l, r, t, b, near, far)
     )
 end
 
+---Returns a new matrix with the value of `a + b`.
 ---@param a Mat4
 ---@param b Mat4
 ---@return Mat4
@@ -365,6 +387,7 @@ function Mat4.__add(a, b)
     return a:clone():add(b)
 end
 
+---Returns a new matrix with the value of `a - b`.
 ---@param a Mat4
 ---@param b Mat4
 ---@return Mat4
@@ -372,6 +395,7 @@ function Mat4.__sub(a, b)
     return a:clone():sub(b)
 end
 
+---Returns a new matrix with the value of `a * b`.
 ---@param a Mat4
 ---@param b Mat4
 ---@return Mat4
@@ -379,6 +403,7 @@ function Mat4.__mul(a, b)
     return a:clone():mul(b)
 end
 
+---Returns a new matrix with the value of `-a`.
 ---@param a Mat4
 ---@return Mat4
 function Mat4.__unm(a)

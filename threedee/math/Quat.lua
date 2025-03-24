@@ -10,19 +10,20 @@ local acos = math.acos
 local WORLD_UP = Vec3:new(0, -1, 0)
 local matrix = Mat3:new()
 
+---A quaternion, often used to represent rotations.
 ---@class Quat
----@field [1] number
----@field [2] number
----@field [3] number
----@field [4] number (real part)
+---@field [1] number X component (imaginary).
+---@field [2] number Y component (imaginary).
+---@field [3] number Z component (imaginary).
+---@field [4] number W component (real part).
 local Quat = class('Quat')
 
 ---Creates a new quaternion.
 ---If no arguments are given, an identity quaternion is created.
----@param x? number x component
----@param y? number y component
----@param z? number z component
----@param w? number w component (real part)
+---@param x? number
+---@param y? number
+---@param z? number
+---@param w? number
 ---@return Quat
 function Quat:new(x, y, z, w)
     return setmetatable({x or 0, y or 0, z or 0, w or 1}, self)
@@ -34,7 +35,7 @@ function Quat:identity()
     return self:set(0, 0, 0, 1)
 end
 
----Makes a new copy of `self`.
+---Returns a copy of `self`.
 ---@return Quat
 function Quat:clone()
     return Quat:new(self[1], self[2], self[3], self[4])
@@ -48,7 +49,7 @@ function Quat:copy(source)
     return self
 end
 
----Sets the components of `self` to the given values.
+---Sets the components of `self`.
 ---@param x number
 ---@param y number
 ---@param z number
@@ -60,10 +61,11 @@ function Quat:set(x, y, z, w)
 end
 
 ---Sets `self` to the rotation specified by `axis` and `angle`.
+---`axis` must be a unit vector and `angle` should be specified in radians.
 ---Note that positive angles go clockwise when viewing in the positive direction
 ---of the axis (e.g. looking rightwards for the X axis).
----@param axis Vec3 axis of rotation (unit vector)
----@param angle number angle (radians)
+---@param axis Vec3
+---@param angle number
 ---@return self
 function Quat:setFromAxisAngle(axis, angle)
     axis = axis:clone():normalize()
@@ -75,6 +77,7 @@ function Quat:setFromAxisAngle(axis, angle)
     return self
 end
 
+---Sets `self` to a rotation matrix as specified by Euler angles `euler`.
 ---@param euler Euler
 ---@return self
 function Quat:setFromEuler(euler)
@@ -117,8 +120,8 @@ function Quat:setFromEuler(euler)
     return self
 end
 
----Sets quaternion from a rotation matrix
----@param rot Mat3 rotation matrix
+---Sets `self` to a rotation as specified by the rotation matrix `rot`.
+---@param rot Mat3
 ---@return self
 function Quat:setFromMat3(rot)
     -- http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
@@ -155,6 +158,7 @@ function Quat:setFromMat3(rot)
     return self
 end
 
+---Sets `self` to its conjugate (i.e. the opposite rotation to `self`).
 ---@return self
 function Quat:conj()
     self[1] = -self[1]
@@ -163,18 +167,21 @@ function Quat:conj()
     return self
 end
 
+---Multiplies `self` by `other`.
 ---@param other Quat
 ---@return self
 function Quat:mul(other)
     return self:mulQuats(self, other)
 end
 
+---Pre-multiplies `self` by `other`.
 ---@param other Quat
 ---@return self
 function Quat:premul(other)
     return self:mulQuats(other, self)
 end
 
+---Sets `self` to the result of multiplying `q1` by `q2`.
 ---@param q1 Quat
 ---@param q2 Quat
 ---@return self
@@ -189,6 +196,7 @@ function Quat:mulQuats(q1, q2)
     return self
 end
 
+---Normalizes `self`.
 ---@return self
 function Quat:normalize()
 	local n = self[1] * self[1] + self[2] * self[2] + self[3] * self[3] + self[4] * self[4]
@@ -203,6 +211,10 @@ function Quat:normalize()
     return self
 end
 
+---Sets `self` to a rotation that rotates `(0, 0, -1)` (the "forwards" direction)
+---to the direction specified by `forwards`, with the up view direction oriented
+---based on `up`. If `up` is not give, the world up direction `(0, -1, 0)` is
+---used by default.
 ---@param forwards Vec3
 ---@param up? Vec3
 ---@return self
@@ -222,6 +234,8 @@ function Quat:lookRotation(forwards, up)
     return self
 end
 
+---Sets self to the result of spherical linear interpolation from `self` to `qb`
+---based on parameter `t`.
 ---@param qb Quat
 ---@param t number
 ---@return self
@@ -255,6 +269,7 @@ function Quat:slerp(qb, t)
 	return self
 end
 
+---Returns the result of multiplying `a` and `b`.
 function Quat.__mul(a, b)
     return a:clone():mul(b)
 end

@@ -12,6 +12,7 @@ local lights = require 'threedee.lights'
 ---@class (partial) EnvMapArgs: EnvMap
 ---@field texture RageTexture
 
+---You can use the `td.envMap()` function to help you create EnvMap objects easier. `args` should be a table containing one or more properties that will be passed into the new EnvMap object. The only required property is `.texture`; other properties will be set to their default values if excluded.
 ---@param args EnvMapArgs
 ---@return EnvMap
 local function envMap(args)

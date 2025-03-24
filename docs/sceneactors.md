@@ -17,10 +17,11 @@ However, you should refrain from calling these actor methods, as they probably w
 
 - `Actor:cullmode()` (see `MeshActor.cullMode` for an alternative)
 
-Emoji meanings:
-- ✅: This property is allowed to be modified after scene finalization/during "runtime", via simple assignment (e.g. `mySceneActor.cullMode = 'none'`).
-- ❌: This property should not be modified at runtime.
+## A note about emojis
 
+Since SceneActors don't have an `:update()` method, these emojis have a slightly different meaning here than in other pages of these docs:
+- ✅: This property is allowed to be modified after scene finalization/during "runtime", via simple assignment (e.g. `mySceneActor.cullMode = 'none'`).
+- ❌: This property should not be modified at runtime. You can set it anytime *before* scene finalization by simple assignment.
 
 
 ## `SceneActor`
@@ -33,7 +34,7 @@ You shouldn't instantiate this base class directly; instead use one of its subcl
 
 #### `SceneActor.actor: Actor`
 The wrapped actor.
-- Updatable during runtime: ❌
+- This property should be treated as **read-only**.
 
 ### Methods
 
@@ -55,6 +56,14 @@ See [`SceneActor`](#sceneactor) for more properties.
 #### `ActorWithMaterial.material: Material`
 The associated material.
 - Updatable during runtime: ❌
+
+#### `ActorWithMaterial.castShadows: boolean`
+Whether this actor casts shadows.
+- Updatable during runtime: ✅
+
+#### `ActorWithMaterial.receiveShadows: boolean`
+Whether this actor can receive shadows.
+- Updatable during runtime: ✅
 
 
 
@@ -96,7 +105,7 @@ See [`ActorWithMaterial`](#actorwithmaterial-sceneactor) for more properties.
 
 #### `NoteFieldProxy.player: Player`
 The player whose notefield this actor is proxying.
-- Updatable during runtime: ❌
+- This property should be treated as **read-only**.
 
 #### `NoteFieldProxy.useShaderFuck: boolean`
 Whether to use `DISPLAY:ShaderFuck()` to apply the material when drawing this actor. Doing this allows the material to be applied to parts of the notefield that otherwise cannot have the material applied (e.g. noteflashes), but removes the ability for different parts of the notefield (arrows, holds, etc.) to have different materials applied.
@@ -153,7 +162,7 @@ See [`SceneActor`](#sceneactor) for more properties.
 
 #### `SceneActorFrame.children: SceneActor[]`
 The SceneActorFrame's children.
-- Updatable during runtime: ❌
+- This property should be treated as **read-only**.
 
 ### Methods
 See [`SceneActor`](#sceneactor) for more methods.

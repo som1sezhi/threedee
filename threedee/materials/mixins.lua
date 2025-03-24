@@ -67,7 +67,7 @@ mixins.CameraMixin = {
 ---@field transparent boolean (X) Whether the material is transparent, or is able to be transparent via a texture. If false, all pixels will either be fully opaque or discarded. Default: `false`
 ---@field opacity number (U) The base alpha. Default: `1` (fully opaque)
 ---@field alphaTest number (U) Pixels with alpha lower than this value will be discarded. This works even if `.transparent` is false. Default: `0.001`
----@field alphaHash boolean (X) Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy. Default: `false`
+---@field alphaHash boolean (X) Enable [hashed alpha testing](https://casual-effects.com/research/Wyman2017Hashed/index.html). If alpha is lower than a random threshold, the pixel is discarded. This allows for the appearance of gradations of transparency even if `.transparent` is false, and also allows for overlapping transparent geometry looking correct without having to sort them by distance, though the result can end up very noisy. Default: `false`
 
 ---Handles transparency/opacity, alpha testing, and alpha hashing.
 ---

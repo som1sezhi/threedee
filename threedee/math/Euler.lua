@@ -19,32 +19,37 @@ end
 ---Note that positive angles go clockwise when viewing in the positive direction
 ---of the axis (e.g. looking rightwards for the X axis).
 ---@class Euler
----@field [1] number rotation around X axis (radians)
----@field [2] number rotation around Y axis (radians)
----@field [3] number rotation around Z axis (radians)
----@field order EulerOrder order in which to apply the rotations
+---@field [1] number Rotation around X axis (in radians).
+---@field [2] number Rotation around Y axis (in radians).
+---@field [3] number Rotation around Z axis (in radians).
+---@field order EulerOrder The order in which to apply the rotations.
 local Euler = class('Euler')
 
 Euler.DEFAULT_ORDER = 'zyx'
 
----Creates a new Euler object.
+---Creates a new Euler object. All angles should be specified in radians.
 ---Note that positive angles go clockwise when viewing in the positive direction
 ---of the axis (e.g. looking rightwards for the X axis).
----@param x? number rotation around X axis (radians)
----@param y? number rotation around Y axis (radians)
----@param z? number rotation around Z axis (radians)
----@param order? EulerOrder order in which to apply the rotations
+---
+---If no arguments are given, all angles will be set to 0.
+---If `order` is not given, `'zyx'` will be used as the default order.
+---@param x? number
+---@param y? number
+---@param z? number
+---@param order? EulerOrder
 ---@return Euler
 function Euler:new(x, y, z, order)
     order = order or Euler.DEFAULT_ORDER
     return setmetatable({ x or 0, y or 0, z or 0, order = order }, self)
 end
 
+---Returns a copy of `self`.
 ---@return Euler
 function Euler:clone()
     return Euler:new(self[1], self[2], self[3], self.order)
 end
 
+---Copies the components of `source` into `self`.
 ---@param source Euler
 ---@return self
 function Euler:copy(source)
@@ -52,6 +57,7 @@ function Euler:copy(source)
     return self
 end
 
+---Sets the components of `self`.
 ---@param x number
 ---@param y number
 ---@param z number
@@ -61,7 +67,9 @@ function Euler:set(x, y, z)
     return self
 end
 
----@param m Mat3 a pure rotation matrix
+---Sets `self` to the rotation specified by a pure rotation matrix `m`.
+---If `order` is not given, `'zyx'` will be used as the default order.
+---@param m Mat3
 ---@param order? EulerOrder
 ---@return self
 function Euler:setFromMat3(m, order)
@@ -133,6 +141,8 @@ function Euler:setFromMat3(m, order)
     return self
 end
 
+---Sets `self` to the rotation specified by the quaternion `q`.
+---If `order` is not given, `'zyx'` will be used as the default order.
 ---@param q Quat
 ---@param order? EulerOrder
 ---@return self
@@ -141,7 +151,7 @@ function Euler:setFromQuat(q, order)
     return self:setFromMat3(matrix, order)
 end
 
----Unpacks the Euler into 3 numbers that can be consumed by `Actor:rotationxyz()` and such.
+---Unpacks the Euler into 3 numbers that can be consumed by actor methods such as `Actor:rotationxyz()`.
 ---This converts the components into degrees, and also negates the Z component because 
 ---for some reason NotITG's Z rotation matrix rotates in the opposite direction of
 ---the other rotation matrices.

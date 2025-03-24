@@ -6,10 +6,10 @@ local shadows = require 'threedee.shadows'
 
 local cos = math.cos
 
----Base class for all lights
+---Base class for all lights.
 ---@class Light: OrientedObject
----@field color Vec3
----@field intensity number
+---@field color Vec3 (U) Light color. Default: `(1, 1, 1)` (white)
+---@field intensity number (U) Light intensity (essentially a multiplier for the color). Default: `1`
 ---@field shadow? StandardShadow
 local Light = class('Light', OrientedObject)
 
@@ -53,11 +53,14 @@ end
 
 --------------------------------------------------------------------------------
 
+---An ambient light, lighting up all surfaces with a uniform
+---color/intensity. Position and rotation is essentially ignored.
 ---@class AmbientLight: Light
 local AmbientLight = class('AmbientLight', Light)
 
 ---@class (partial) AmbientLight.P: AmbientLight, Light.P
 
+---Creates a new AmbientLight.
 function AmbientLight:new(color, intensity)
     return Light.new(self, color, intensity)
 end
@@ -81,16 +84,18 @@ AmbientLight.update = Light.update
 
 --------------------------------------------------------------------------------
 
+---Emits light from a single point in all directions.
 ---@class PointLight: Light
 ---@field index number
----@field linearAttenuation number
----@field quadraticAttenuation number
----@field castShadows boolean
----@field shadow StandardPerspectiveShadow
+---@field linearAttenuation number (U) Linear attenuation factor. This value should probably be kept quite small. As you go further from the light, the light dims by a factor of `1 / (1 + linearAttenuation * distance + quadraticAttenuation * distance^2)`. Default: `0`
+---@field quadraticAttenuation number (U) Quadratic attenuation factor. This value should porbably be kept quite small. As you go further from the light, the light dims by a factor of `1 / (1 + linearAttenuation * distance + quadraticAttenuation * distance^2)`. Default: `0.000002`
+---@field castShadows boolean (X) Whether this light casts shadows. Default: `false`
+---@field shadow StandardPerspectiveShadow (Y) The light's shadow. Default: a StandardShadow using a PerspectiveCamera with `.fov = math.rad(90)`, `.nearDist = 100`, and `.farDist = 3000`.
 local PointLight = class('PointLight', Light)
 
 ---@class (partial) PointLight.P: PointLight, Light.P
 
+---Creates a new PointLight.
 function PointLight:new(color, intensity, position)
     local o = Light.new(self, color, intensity, position)
     o.index = -1
@@ -180,14 +185,21 @@ PointLight.update = Light.update
 
 --------------------------------------------------------------------------------
 
+---Emits light in a single direction. This models a light source that is
+---infinitely far away, with light rays going in parallel.
+---
+---Note that `.position` still matters for this light; if shadows are
+---enabled, the light's shadow map will be taken from the POV of that
+---position.
 ---@class DirLight: Light
 ---@field index number
----@field castShadows boolean
----@field shadow StandardOrthographicShadow
+---@field castShadows boolean (X) Whether this light casts shadows. Default: `false`
+---@field shadow StandardOrthographicShadow (Y) The light's shadow. Default: a StandardShadow using an OrthographicCamera with `.nearDist = 100` and `.farDist = 3000`.
 local DirLight = class('DirLight', Light)
 
 ---@class (partial) DirLight.P: DirLight, Light.P
 
+---Creates a new DirLight.
 function DirLight:new(color, intensity)
     local o = Light.new(self, color, intensity)
     o.index = -1
@@ -262,20 +274,22 @@ DirLight.update = Light.update
 
 --------------------------------------------------------------------------------
 
+---A spotlight, emitting light in a cone pointed in a particular direction.
 ---@class SpotLight: Light
 ---@field index number
 ---@field colorMapIndex number
----@field linearAttenuation number
----@field quadraticAttenuation number
----@field castShadows boolean
----@field shadow StandardPerspectiveShadow
----@field angle number
----@field penumbra number
----@field colorMap RageTexture|false
+---@field linearAttenuation number (U) Linear attenuation factor. This value should probably be kept quite small. As you go further from the light, the light dims by a factor of `1 / (1 + linearAttenuation * distance + quadraticAttenuation * distance^2)`. Default: `0`
+---@field quadraticAttenuation number (U) Quadratic attenuation factor. This value should probably be kept quite small. As you go further from the light, the light dims by a factor of `1 / (1 + linearAttenuation * distance + quadraticAttenuation * distance^2)`. Default: `0.000002`
+---@field castShadows boolean (X) Whether this light casts shadows. Default: `false`
+---@field shadow StandardPerspectiveShadow (Y) The light's shadow. Default: a StandardShadow using a PerspectiveCamera with `.fov = light.angle * 2`, `aspectRatio = 1`, `nearDist = 100`, and `farDist = 3000`.
+---@field angle number (U) The angular radius of the spotlight, which should be a number in the interval [0, pi/2). Note that updating this property via `:update()` will also update the `.fov` property of this light's shadow camera. Default: `math.rad(45)`
+---@field penumbra number (U) A number in [0, 1] representing the proportion of the spotlight radius used to transition between total darkness and full brightness. Lower values give a sharper edge; higher values give a softer edge. Default: `0`
+---@field colorMap RageTexture|false (C) If present, this texture is used to modulate the color of the light. This can be used to implement light cookie effects. RGB textures are allowed to be used. Note that the shadow camera's matrices are used to calculate the UV coordinates for this texture, so be aware of this when fiddling with the shadow camera's properties. Default: `false`
 local SpotLight = class('SpotLight', Light)
 
 ---@class (partial) SpotLight.P: SpotLight, Light.P
 
+---Creates a new SpotLight.
 ---@param color? Vec3
 ---@param intensity? number
 ---@param position? Vec3

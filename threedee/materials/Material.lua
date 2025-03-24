@@ -7,9 +7,9 @@ local Updatable = require 'threedee.Updatable'
 
 ---Base class for all materials.
 ---@class Material: Updatable
----@field shader RageShaderProgram
----@field vertSource? string
----@field fragSource? string
+---@field shader RageShaderProgram (X) The material's shader program. If not supplied via `Material:new()`, a shader program will be automatically supplied from one of the actors in the `_td_materialActors` ActorFrame in threedee.xml.
+---@field vertSource? string (X) Vertex shader source code. Material subclasses will override this with their own source code. If `.vertSource` and `.fragSource` are not both present by compile time, threedee will not compile a new shader, but will instead retain the shader program pre-existing inside `self.shader`. Default: `nil`
+---@field fragSource? string (X) Fragment shader source code. Material subclasses will override this with their own source code. If `.vertSource` and `.fragSource` are not both present by compile time, threedee will not compile a new shader, but will instead retain the shader program pre-existing inside `self.shader`. Default: `nil`
 ---@field mixins MaterialMixin[]
 ---@field changeFuncs {[string]: ChangeFunc}
 ---@field listeners {[string]: MaterialListener}
@@ -22,11 +22,13 @@ local Material = class('Material', Updatable)
 Material.mixins = {}
 Material.listeners = {}
 
+---Creates a new material. If present, `initProps` should be a table containing
+---one or more material properties that will be passed into the new material.
 ---@generic M: Material
 ---@param self M
 ---@param initProps M?
 ---@return M
-function Material.new(self, initProps)
+function Material:new(initProps)
     initProps = initProps or {}
     if initProps.shader == nil then
         local sh = actors.getMaterialActor():GetShader()
@@ -46,7 +48,6 @@ function Material.new(self, initProps)
 end
 
 ---Add a new mixin to this material after creation.
----This should be called before assigning this material to any actor
 ---@param mixin MaterialMixin
 function Material:addMixin(mixin)
     -- make copies of various tables just for this material so
@@ -89,6 +90,7 @@ end
 ---Compiles the shader, setting the #defines according to the
 ---material and scene properties.
 ---Does not set any uniforms yet.
+---This method is called by `Scene:finalize()`.
 ---@param scene Scene
 function Material:compile(scene)
     if self.vertSource and self.fragSource then
@@ -98,7 +100,8 @@ function Material:compile(scene)
     self.shader:compileImmediate()
 end
 
----Sets the #defines according to the material and scene properties.
+---Sets all the shader #defines according to the material and scene properties.
+---This is called by `Material:compile()`.
 ---@param scene Scene
 function Material:setDefines(scene)
     for _, mixin in ipairs(self.mixins) do

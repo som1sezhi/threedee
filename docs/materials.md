@@ -1,11 +1,6 @@
 # Built-in Materials
 
-Note that all these properties are in addition to the properties provided by the base class.
-
-Emoji meanings:
-- ✅: This property is allowed to be modified after scene finalization/during "runtime", via the material's `:update()` method.
-- ⚠️: This property may only be modified during runtime to a value with the *same type* as the previous value. For example, a `.colorMap` property that was set to a `RageTexture` can only be changed to another `RageTexture`. An `.envMap` property set to an `EnvMap` may only be set to another `EnvMap` with the *same properties* (mapping, color format, etc.), besides perhaps the texture itself. A property set to `false` or `'sampler0'` should not be modified during runtime at all.
-- ❌: This property should not be modified at runtime.
+Remember that all these properties are in addition to the properties provided by the base class.
 
 ## `DepthMaterial`
 
@@ -15,7 +10,7 @@ as colors. This material is used internally to draw shadow maps.
 ### Properties
 
 #### `DepthMaterial.alphaHash: boolean`
-Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
+Enable [hashed alpha testing](https://casual-effects.com/research/Wyman2017Hashed/index.html). If alpha is lower than a random threshold, the pixel is discarded. This allows for the appearance of gradations of transparency even if `.transparent` is false, and also allows for overlapping transparent geometry looking correct without having to sort them by distance, though the result can end up very noisy.
 - Default value: `false`
 - Updatable during runtime: ❌
 
@@ -57,7 +52,7 @@ A material that uses a matcap texture to give an appearance of lighting/shading.
 ### Properties
 
 #### `MatcapMaterial.alphaHash: boolean`
-Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
+Enable [hashed alpha testing](https://casual-effects.com/research/Wyman2017Hashed/index.html). If alpha is lower than a random threshold, the pixel is discarded. This allows for the appearance of gradations of transparency even if `.transparent` is false, and also allows for overlapping transparent geometry looking correct without having to sort them by distance, though the result can end up very noisy.
 - Default value: `false`
 - Updatable during runtime: ❌
 
@@ -114,7 +109,7 @@ A material that visualizes normal vectors as RGB colors.
 ### Properties
 
 #### `NormalMaterial.alphaHash: boolean`
-Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
+Enable [hashed alpha testing](https://casual-effects.com/research/Wyman2017Hashed/index.html). If alpha is lower than a random threshold, the pixel is discarded. This allows for the appearance of gradations of transparency even if `.transparent` is false, and also allows for overlapping transparent geometry looking correct without having to sort them by distance, though the result can end up very noisy.
 - Default value: `false`
 - Updatable during runtime: ❌
 
@@ -156,7 +151,7 @@ A material using the Blinn-Phong shading model.
 ### Properties
 
 #### `PhongMaterial.alphaHash: boolean`
-Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
+Enable [hashed alpha testing](https://casual-effects.com/research/Wyman2017Hashed/index.html). If alpha is lower than a random threshold, the pixel is discarded. This allows for the appearance of gradations of transparency even if `.transparent` is false, and also allows for overlapping transparent geometry looking correct without having to sort them by distance, though the result can end up very noisy.
 - Default value: `false`
 - Updatable during runtime: ❌
 
@@ -276,7 +271,7 @@ A material that only shows the base color and does not respond to lighting.
 ### Properties
 
 #### `UnlitMaterial.alphaHash: boolean`
-Enable hashed alpha testing. If alpha is lower than a random threshold, the pixel is discarded. This allows for gradations of transparency even while `.transparent` is false, but it looks very noisy.
+Enable [hashed alpha testing](https://casual-effects.com/research/Wyman2017Hashed/index.html). If alpha is lower than a random threshold, the pixel is discarded. This allows for the appearance of gradations of transparency even if `.transparent` is false, and also allows for overlapping transparent geometry looking correct without having to sort them by distance, though the result can end up very noisy.
 - Default value: `false`
 - Updatable during runtime: ❌
 

@@ -3,23 +3,26 @@ local class = require 'threedee.class'
 local cos = math.cos
 local sin = math.sin
 
+---A 3x3 matrix. Entries are in column-major order.
 ---@class Mat3
----@field [1] number
----@field [2] number
----@field [3] number
----@field [4] number
----@field [5] number
----@field [6] number
----@field [7] number
----@field [8] number
----@field [9] number
+---@field [1] number Element at row 1, column 1.
+---@field [2] number Element at row 2, column 1.
+---@field [3] number Element at row 3, column 1.
+---@field [4] number Element at row 1, column 2.
+---@field [5] number Element at row 2, column 2.
+---@field [6] number Element at row 3, column 2.
+---@field [7] number Element at row 1, column 3.
+---@field [8] number Element at row 2, column 3.
+---@field [9] number Element at row 3, column 3.
 ---@operator add(Mat3): Mat3
 ---@operator sub(Mat3): Mat3
 ---@operator mul(Mat3): Mat3
 ---@operator unm(Mat3): Mat3
 local Mat3 = class('Mat3')
 
----Note: entries are in column-major order
+---Creates a new Mat3.
+---Entries should be specified in column-major order.
+---If no arguments are given, the identity matrix is returned.
 ---@param a11? number
 ---@param a21? number
 ---@param a31? number
@@ -50,6 +53,7 @@ function Mat3:new(
     return o
 end
 
+---Sets `self` to the identity matrix.
 ---@return self
 function Mat3:identity()
     return self:set(
@@ -59,11 +63,13 @@ function Mat3:identity()
     )
 end
 
+---Returns a copy of `self`.
 ---@return Mat3
 function Mat3:clone()
     return Mat3:new(unpack(self))
 end
 
+---Copies the elements of `source` to `self`.
 ---@param source Mat3
 ---@return self
 function Mat3:copy(source)
@@ -73,7 +79,8 @@ function Mat3:copy(source)
     return self
 end
 
----Note: entries are in column-major order
+---Sets the entries of `self`.
+---Entries should be specified in column-major order.
 ---@param a11 number
 ---@param a21 number
 ---@param a31 number
@@ -95,6 +102,7 @@ function Mat3:set(
     return self
 end
 
+---Sets `self` to the upper 3x3 submatrix of `mat`.
 ---@param mat Mat4
 ---@return self
 function Mat3:setFromMat4(mat)
@@ -104,6 +112,7 @@ function Mat3:setFromMat4(mat)
     return self
 end
 
+---Sets `self` to a rotation matrix as specified by quaternion `q`.
 ---@param q Quat
 ---@return self
 function Mat3:setFromQuat(q)
@@ -121,6 +130,7 @@ function Mat3:setFromQuat(q)
     return self
 end
 
+---Sets `self` to a rotation matrix as specified by Euler angles `euler`.
 ---@param euler Euler
 ---@return self
 function Mat3:setFromEuler(euler)
@@ -218,10 +228,11 @@ function Mat3:setFromEuler(euler)
 end
 
 ---Sets `self` to the rotation matrix specified by `axis` and `angle`.
+---`axis` must be a unit vector and `angle` should be specified in radians.
 ---Note that positive angles go clockwise when viewing in the positive direction
 ---of the axis (e.g. looking rightwards for the X axis).
----@param axis Vec3 axis of rotation (unit vector)
----@param angle number angle (radians)
+---@param axis Vec3
+---@param angle number
 ---@return self
 function Mat3:setFromAxisAngle(axis, angle)
     -- from three.js and https://www.gamedev.net/reference/articles/article1199.asp
@@ -237,6 +248,7 @@ function Mat3:setFromAxisAngle(axis, angle)
     )
 end
 
+---Sets `self` in terms of row vectors.
 ---@param row1 Vec3
 ---@param row2 Vec3
 ---@param row3 Vec3
@@ -248,6 +260,7 @@ function Mat3:setFromRows(row1, row2, row3)
     )
 end
 
+---Sets `self` in terms of column vectors.
 ---@param col1 Vec3
 ---@param col2 Vec3
 ---@param col3 Vec3
@@ -259,6 +272,7 @@ function Mat3:setFromCols(col1, col2, col3)
     )
 end
 
+---Sets `self` to the result of `self + other`.
 ---@param other Mat3
 ---@return self
 function Mat3:add(other)
@@ -268,6 +282,7 @@ function Mat3:add(other)
     return self
 end
 
+---Sets `self` to the result of `self - other`.
 ---@param other Mat3
 ---@return self
 function Mat3:sub(other)
@@ -277,6 +292,7 @@ function Mat3:sub(other)
     return self
 end
 
+---Sets `self` to the result of `-self`.
 ---@return self
 function Mat3:neg()
     for i = 1, 9 do
@@ -285,6 +301,7 @@ function Mat3:neg()
     return self
 end
 
+---Scales `self` by the scalar `r`.
 ---@param r number
 ---@return self
 function Mat3:scale(r)
@@ -294,18 +311,21 @@ function Mat3:scale(r)
     return self
 end
 
+---Sets `self` to the result of the matrix multiplication `self * other`.
 ---@param other Mat3
 ---@return self
 function Mat3:mul(other)
     return self:mulMatrices(self, other)
 end
 
+---Sets `self` to the result of the matrix multiplication `other * self`.
 ---@param other Mat3
 ---@return self
 function Mat3:premul(other)
     return self:mulMatrices(other, self)
 end
 
+---Sets `self` to the result of the matrix multiplication `matrixA * matrixB`.
 ---@param matrixA Mat3
 ---@param matrixB Mat3
 ---@return self
@@ -330,6 +350,7 @@ function Mat3:mulMatrices(matrixA, matrixB)
     return self
 end
 
+---Sets `self` to its `transpose`.
 ---@return self
 function Mat3:transpose()
     self[2], self[4] = self[4], self[2]
@@ -338,6 +359,7 @@ function Mat3:transpose()
     return self
 end
 
+---Returns a new matrix with the value of `a + b`.
 ---@param a Mat3
 ---@param b Mat3
 ---@return Mat3
@@ -345,6 +367,7 @@ function Mat3.__add(a, b)
     return a:clone():add(b)
 end
 
+---Returns a new matrix with the value of `a - b`.
 ---@param a Mat3
 ---@param b Mat3
 ---@return Mat3
@@ -352,6 +375,7 @@ function Mat3.__sub(a, b)
     return a:clone():sub(b)
 end
 
+---Returns a new matrix with the value of `a * b`.
 ---@param a Mat3
 ---@param b Mat3
 ---@return Mat3
@@ -359,6 +383,7 @@ function Mat3.__mul(a, b)
     return a:clone():mul(b)
 end
 
+---Returns a new matrix with the value of `-a`.
 ---@param a Mat3
 ---@return Mat3
 function Mat3.__unm(a)

@@ -20,18 +20,18 @@ local PubSub = require 'threedee.PubSub'
 ---@field numSpotLightMatrices number
 
 ---@class Scene: Updatable
----@field aframe ActorFrame
----@field camera Camera
----@field actors SceneActor[]
----@field materials Material[]
+---@field aframe ActorFrame (R) The scene ActorFrame.
+---@field camera Camera (Y) The camera used to draw the scene.
+---@field actors SceneActor[] (R) The scene's actors.
+---@field materials Material[] (R) The scene's materials.
 ---@field lights SceneLights
 ---@field pub PubSub
----@field doShadows boolean
----@field shadowMapFilter 'none'|'pcf_simple'|'pcf_bilinear'
----@field background Vec3|RageTexture|EnvMap
----@field backgroundRotation Mat3
----@field backgroundIntensity number
----@field drawBackgroundFirst boolean
+---@field doShadows boolean (U) Global toggle for shadows. Default: `true`
+---@field shadowMapFilter 'none'|'pcf_simple'|'pcf_bilinear' (X) The kind of filtering applied to the shadow map when using shadows. In order of increasing visual quality (and cost): `'none'` does no filtering and can result in jagged-looking shadows; `'pcf_simple'` does percentage-closer filtering (PCF) with a 3x3 neighborhood of texels; and `'pcf_bilinear'` does PCF with a 3x3 grid of bilinear samples using data from a 4x4 neighborhood of texels. Default: `'pcf_simple'`
+---@field background Vec3|RageTexture|EnvMap (C) The scene background. If set to a Vec3 (i.e. a color), a solid-color background will be drawn. If set to a RageTexture, a static full-screen image will be drawn. If set to an EnvMap, a 3D environment map will be drawn. Default: `(0, 0, 0)` (black)
+---@field backgroundRotation Mat3 (U) The environment map rotation, if using an environment map for the background. Default: identity matrix
+---@field backgroundIntensity number (U) The background brightness. Default: `1`
+---@field drawBackgroundFirst boolean (U) If true, draw the background first, before any of the scene's actors; if false, draw the background last. Setting this to false is slightly more performant (no time wasted drawing parts of the background that would be covered up), but may lead to z-buffer issues with notefield receptors if the receptors are positioned directly on top of the background. Default: `true`
 ---@field _isDrawingShadowMap boolean
 ---@field _overrideMaterial? Material
 ---@field private _firstDraw boolean
@@ -39,6 +39,7 @@ local PubSub = require 'threedee.PubSub'
 ---@field private _backgroundActor MeshActor
 local Scene = class('Scene', Updatable)
 
+---Creates a new scene with the given ActorFrame and Camera.
 ---@param aframe ActorFrame
 ---@param camera Camera
 ---@return Scene
@@ -64,7 +65,7 @@ function Scene:new(aframe, camera)
 
         pub = PubSub:new(),
 
-        doShadows = false,
+        doShadows = true,
         shadowMapFilter = 'pcf_simple',
         background = Vec3:new(0, 0, 0),
         backgroundRotation = Mat3:new(),
@@ -129,12 +130,15 @@ function Scene:_addMaterialsFromSceneActor(sceneActor)
     end
 end
 
+---Adds a new actor to the scene. The SceneActor should wrap a direct
+---child of `self.aframe`.
 ---@param sceneActor SceneActor
 function Scene:add(sceneActor)
     table.insert(self.actors, sceneActor)
     self:_addMaterialsFromSceneActor(sceneActor)
 end
 
+---Adds a light to the scene.
 ---@param light Light
 function Scene:addLight(light)
     ---@diagnostic disable-next-line: undefined-field
@@ -150,6 +154,11 @@ function Scene:addLight(light)
     end
 end
 
+---Finalizes the scene. This compiles all the materials' shaders and
+---does some other other bookkeeping work. After calling this, many
+---properties of the Scene/SceneActors/lights/materials/etc. are effectively
+---"frozen" and should not be changed. For example, you may not add
+---any more actors or lights to the scene after calling this.
 function Scene:finalize()
     local lights = self.lights
 
@@ -234,6 +243,8 @@ function Scene:finalize()
     self._backgroundActor:finalize(self)
 end
 
+---This is the method called internally by the scene ActorFrame's
+---drawfunction to draw the scene.
 function Scene:draw()
     if self._firstDraw then
         -- ensure camera matrices are updated
@@ -302,6 +313,11 @@ function Scene:draw()
     
 end
 
+---Calls all the scene actors' `:Draw()` methods once.
+---You can override this method to set your own scene "drawfunction", similar
+---to what you might usually use NotITG drawfunctions for (e.g. to draw
+---the same actor multiple times per frame). Make sure to call the `:Draw()`
+---methods on the SceneActors instead of the bare, unwrapped actors.
 function Scene:drawActors()
     for _, act in ipairs(self.actors) do
         act:Draw()
