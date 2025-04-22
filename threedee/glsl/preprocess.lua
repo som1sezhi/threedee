@@ -55,7 +55,11 @@ local function preprocess(source1, source2)
                     prevIncludedTraits[traitName] = true
                 end
             end
-            return snippetInfo.snippet
+
+            -- prepend \n to ensure snippet always starts with a newline
+            -- (apparently on some systems the initial newline of multiline
+            -- strings can be dropped somehow?? idk)
+            return '\n' .. snippetInfo.snippet
         else
             error('could not resolve #include <' .. snippetName .. '>')
         end
