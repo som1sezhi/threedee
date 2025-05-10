@@ -4,12 +4,13 @@ local mixins  = require 'threedee.materials.mixins'
 local materialClass = require 'threedee.materials.materialClass'
 
 ---A material that visualizes normal vectors as RGB colors.
----@class NormalMaterial: Material, WithCamera, WithNormalMap, WithAlphaMap, WithAlpha
+---@class NormalMaterial: Material, WithCamera, WithNormalMap, WithAlphaMap, WithAlpha, WithDithering
 local NormalMaterial = materialClass('NormalMaterial', Material, {
     mixins.CameraMixin,
     mixins.NormalMapMixin,
     mixins.AlphaMapMixin,
-    mixins.AlphaMixin
+    mixins.AlphaMixin,
+    mixins.DitheringMixin
 })
 
 ---@class (partial) NormalMaterial.P: NormalMaterial

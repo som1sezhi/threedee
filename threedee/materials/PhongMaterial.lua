@@ -6,7 +6,7 @@ local materialClass = require 'threedee.materials.materialClass'
 local cfs = require 'threedee.materials.changeFuncs'
 
 ---A material using the Blinn-Phong shading model.
----@class PhongMaterial: Material, WithCamera, WithColor, WithLights, WithAlpha, WithNormalMap, WithEnvMap
+---@class PhongMaterial: Material, WithCamera, WithColor, WithLights, WithAlpha, WithNormalMap, WithEnvMap, WithDithering
 ---@field specular Vec3 (U) Specular color. Default: `(1, 1, 1)` (white)
 ---@field specularMap RageTexture|false (C) Specular map. Affects both the specular color and the environment map. Default: `false`
 ---@field specularMapColorSpace 'srgb'|'linear' (X) Whether to interpret the specular map data as linear or sRGB. If the specular map is grayscale, this should probably be `'linear'`; if it is colored, this should probably be `'srgb'`. Default: `'linear'`
@@ -19,7 +19,8 @@ local PhongMaterial = materialClass('PhongMaterial', Material, {
     mixins.LightsMixin,
     mixins.NormalMapMixin,
     mixins.AlphaMixin,
-    mixins.EnvMapMixin
+    mixins.EnvMapMixin,
+    mixins.DitheringMixin
 })
 
 ---@class (partial) PhongMaterial.P: PhongMaterial

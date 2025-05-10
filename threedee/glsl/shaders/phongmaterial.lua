@@ -37,6 +37,7 @@ local frag = [[#version 120
 #include <phong_frag_defs>
 #include <shadowmap_frag_defs>
 #include <envmap_frag_defs>
+#include <dithering_frag_defs>
 
 uniform vec3 emissive;
 #ifdef USE_EMISSIVE_MAP
@@ -59,6 +60,7 @@ void main() {
     #endif
     outgoingLight = linear2Srgb(outgoingLight);
     gl_FragColor = vec4(outgoingLight, alpha);
+    #include <dithering_frag>
 }
 ]]
 

@@ -38,6 +38,7 @@ local frag = [[#version 120
 #include <alphamap_frag_defs>
 #include <alpha_frag_defs>
 #include <alphadiscard_frag_defs>
+#include <dithering_frag_defs>
 varying float depth;
 
 void main() {
@@ -51,6 +52,7 @@ void main() {
     #else
         gl_FragColor = vec4(vec3(depth), alpha);
     #endif
+    #include <dithering_frag>
 }
 ]]
 

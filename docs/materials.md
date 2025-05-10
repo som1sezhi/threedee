@@ -24,6 +24,11 @@ Pixels with alpha lower than this value will be discarded. This works even if `.
 - Default value: `0.001`
 - Updatable during runtime: ✅
 
+#### `DepthMaterial.dithering: boolean`
+Whether to perform dithering. This can reduce the appearance of banding artifacts at the cost of introducing some noise.
+- Default value: `false`
+- Updatable during runtime: ❌
+
 #### `DepthMaterial.opacity: number`
 The base alpha.
 - Default value: `1` (fully opaque)
@@ -70,6 +75,11 @@ Base color.
 Base color texture. An alpha channel may be included. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
 - Updatable during runtime: ⚠️
+
+#### `MatcapMaterial.dithering: boolean`
+Whether to perform dithering. This can reduce the appearance of banding artifacts at the cost of introducing some noise.
+- Default value: `false`
+- Updatable during runtime: ❌
 
 #### `MatcapMaterial.matcap: RageTexture|false`
 The matcap texture.
@@ -123,6 +133,11 @@ Pixels with alpha lower than this value will be discarded. This works even if `.
 - Default value: `0.001`
 - Updatable during runtime: ✅
 
+#### `NormalMaterial.dithering: boolean`
+Whether to perform dithering. This can reduce the appearance of banding artifacts at the cost of introducing some noise.
+- Default value: `false`
+- Updatable during runtime: ❌
+
 #### `NormalMaterial.normalMap: RageTexture|false`
 The normal map.
 - Default value: `false`
@@ -169,6 +184,11 @@ Base color.
 Base color texture. An alpha channel may be included. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
 - Updatable during runtime: ⚠️
+
+#### `PhongMaterial.dithering: boolean`
+Whether to perform dithering. This can reduce the appearance of banding artifacts at the cost of introducing some noise.
+- Default value: `false`
+- Updatable during runtime: ❌
 
 #### `PhongMaterial.emissive: Vec3`
 Emissive color.
@@ -262,7 +282,11 @@ A debug material that visualizes the UV coordinates on an object using red and g
 
 ### Properties
 
-This material has no additional properties.
+#### `UVMaterial.dithering: boolean`
+Whether to perform dithering. This can reduce the appearance of banding artifacts at the cost of introducing some noise.
+- Default value: `false`
+- Updatable during runtime: ❌
+
 
 ## `UnlitMaterial`
 
@@ -289,6 +313,11 @@ Base color.
 Base color texture. An alpha channel may be included. If set to `'sampler0'`, use the actor's default texture.
 - Default value: `false`
 - Updatable during runtime: ⚠️
+
+#### `UnlitMaterial.dithering: boolean`
+Whether to perform dithering. This can reduce the appearance of banding artifacts at the cost of introducing some noise.
+- Default value: `false`
+- Updatable during runtime: ❌
 
 #### `UnlitMaterial.opacity: number`
 The base alpha.

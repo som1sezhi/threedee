@@ -5,13 +5,14 @@ local materialClass = require 'threedee.materials.materialClass'
 local cfs = require 'threedee.materials.changeFuncs'
 
 ---A material that uses a matcap texture to give an appearance of lighting/shading.
----@class MatcapMaterial: Material, WithCamera, WithNormalMap, WithColor, WithAlpha
+---@class MatcapMaterial: Material, WithCamera, WithNormalMap, WithColor, WithAlpha, WithDithering
 ---@field matcap RageTexture|false (C) The matcap texture. Default: `false`
 local MatcapMaterial = materialClass('MatcapMaterial', Material, {
     mixins.CameraMixin,
     mixins.NormalMapMixin,
     mixins.ColorMixin,
-    mixins.AlphaMixin
+    mixins.AlphaMixin,
+    mixins.DitheringMixin
 })
 
 ---@class (partial) MatcapMaterial.P: MatcapMaterial

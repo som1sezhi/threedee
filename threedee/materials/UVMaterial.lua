@@ -5,9 +5,10 @@ local mixins  = require 'threedee.materials.mixins'
 local materialClass = require 'threedee.materials.materialClass'
 
 ---A debug material that visualizes the UV coordinates on an object using red and green values.
----@class UVMaterial: Material, WithCamera
+---@class UVMaterial: Material, WithCamera, WithDithering
 local UVMaterial = materialClass('UVMaterial', Material, {
-    mixins.CameraMixin
+    mixins.CameraMixin,
+    mixins.DitheringMixin
 })
 
 ---@class (partial) UVMaterial.P: UVMaterial

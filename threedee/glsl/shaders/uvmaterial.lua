@@ -13,10 +13,13 @@ void main() {
 
 local frag = [[#version 120
 #line 2 2002122
+#include <utils>
 #include <texcoord_frag_defs>
+#include <dithering_frag_defs>
 
 void main() {
     gl_FragColor = vec4(vTextureCoord, 0.0, 1.0);
+    #include <dithering_frag>
 }
 ]]
 

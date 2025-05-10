@@ -30,6 +30,7 @@ local frag = [[#version 120
 #include <color_frag_defs>
 #include <alpha_frag_defs>
 #include <alphadiscard_frag_defs>
+#include <dithering_frag_defs>
 
 #ifdef USE_MATCAP
     uniform sampler2D matcap;
@@ -51,6 +52,7 @@ void main() {
 
     fragBaseColor = linear2Srgb(fragBaseColor);
     gl_FragColor = vec4(fragBaseColor, alpha);
+    #include <dithering_frag>
 }
 ]]
 

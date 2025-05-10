@@ -23,6 +23,7 @@ local frag = [[#version 120
 #include <alpha_frag_defs>
 #include <alphadiscard_frag_defs>
 #include <texcoord_frag_defs>
+#include <dithering_frag_defs>
 
 void main() {
     #include <alpha_frag>
@@ -31,6 +32,7 @@ void main() {
 
     fragBaseColor = linear2Srgb(fragBaseColor);
     gl_FragColor = vec4(fragBaseColor, alpha);
+    #include <dithering_frag>
 }
 ]]
 

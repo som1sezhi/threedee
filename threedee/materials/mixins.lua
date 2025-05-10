@@ -260,6 +260,28 @@ mixins.EnvMapMixin = {
 
 ---------------------------------------------------------------------
 
+---@class WithDithering: Material
+---@field dithering boolean (X) Whether to perform dithering. This can reduce the appearance of banding artifacts at the cost of introducing some noise. Default: `false`
+
+---Handles dithering.
+---
+---Defined fields: `dithering: boolean`
+---
+---Associated snippets: `<dithering_*>`
+mixins.DitheringMixin = {
+    init = function(self)
+        ---@cast self WithDithering
+        self.dithering = self.dithering or false
+    end,
+
+    setDefines = function(self)
+        ---@cast self WithDithering
+        self:_defineFlag('DITHERING', self.dithering)
+    end
+}
+
+---------------------------------------------------------------------
+
 local function lightUniformListener(uniformArrayName)
     local template = uniformArrayName .. '[%d].%s'
     return function(self, args)

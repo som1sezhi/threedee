@@ -28,6 +28,7 @@ local frag = [[#version 120
 #include <alpha_frag_defs>
 #include <alphamap_frag_defs>
 #include <alphadiscard_frag_defs>
+#include <dithering_frag_defs>
 
 void main() {
     #include <normal_frag>
@@ -35,6 +36,7 @@ void main() {
     #include <alphamap_frag>
     #include <alphadiscard_frag>
     gl_FragColor = vec4(normal * 0.5 + 0.5, alpha);
+    #include <dithering_frag>
 }
 ]]
 

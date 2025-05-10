@@ -6,11 +6,12 @@ local materialClass = require 'threedee.materials.materialClass'
 local cfs = require 'threedee.materials.changeFuncs'
 
 ---A material that only shows the base color and does not respond to lighting.
----@class UnlitMaterial: Material, WithCamera, WithColor, WithAlpha
+---@class UnlitMaterial: Material, WithCamera, WithColor, WithAlpha, WithDithering
 local UnlitMaterial = materialClass('UnlitMaterial', Material, {
     mixins.CameraMixin,
     mixins.ColorMixin,
     mixins.AlphaMixin,
+    mixins.DitheringMixin
 })
 
 ---@class (partial) UnlitMaterial.P: UnlitMaterial
